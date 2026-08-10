@@ -15,15 +15,20 @@ Painel → **Edge Functions → Secrets** → adicionar:
 
 | Nome | Valor |
 |---|---|
-| `ORIGEM_PWA` | `https://pedrocoutinho2.github.io` |
-| `WEBAUTHN_RP_ID` | `pedrocoutinho2.github.io` |
+| `ORIGEM_PWA` | `https://ponto.cnataquara.com.br` |
+| `WEBAUTHN_RP_ID` | `ponto.cnataquara.com.br` |
 
 O `SUPABASE_URL` e o `SUPABASE_SERVICE_ROLE_KEY` já vêm preenchidos.
 
-**Atenção ao endereço.** O passkey fica amarrado ao domínio: se um dia o
-sistema mudar para `ponto.cnataquara.com.br`, todo mundo terá que registrar
-o celular de novo. Se você já pretende usar domínio próprio, configure
-antes de cadastrar a equipe — economiza 18 reregistros.
+Copie exatamente como está: o `ORIGEM_PWA` leva `https://` e o
+`WEBAUTHN_RP_ID` não leva. Não é capricho do formato — o WebAuthn compara
+a origem inteira contra um valor e o domínio contra o outro. Um `https://`
+sobrando no RP_ID faz toda validação de passkey falhar com mensagem
+genérica.
+
+**O domínio é definitivo agora.** O passkey fica amarrado a
+`ponto.cnataquara.com.br`. Mudar o endereço depois obriga as 18 pessoas a
+registrar o celular de novo.
 
 ## 2. Criar o bucket de evidências
 
@@ -88,12 +93,14 @@ A tabela na tela de cadastro mostra em que pé está cada um.
 
 # Telas
 
+Domínio: **ponto.cnataquara.com.br** (HTTPS forçado, certificado emitido).
+
 | Endereço | Para quê |
 |---|---|
-| `/` | Bater ponto |
-| `/entrar.html` | Login |
-| `/admin.html` | Equipe, espelho, banco de horas, relatórios |
-| `/cadastro.html` | Cadastro biométrico presencial |
+| `ponto.cnataquara.com.br` | Bater ponto |
+| `.../entrar.html` | Login |
+| `.../admin.html` | Equipe, espelho, banco de horas, relatórios |
+| `.../cadastro.html` | Cadastro biométrico presencial |
 
 ---
 
