@@ -2,12 +2,14 @@
 // enfileirada offline: o horário válido é o do servidor, e um registro
 // gravado com atraso de horas é pior que registro nenhum.
 const CACHE = 'ponto-cna-v1';
+const MODELOS = ['tiny_face_detector', 'face_landmark_68', 'face_recognition', 'face_expression'];
 const CASCO = [
   './index.html', './manifest.webmanifest',
-  './models/tiny_face_detector_model-weights_manifest.json',
-  './models/face_landmark_68_model-weights_manifest.json',
-  './models/face_recognition_model-weights_manifest.json',
-  './models/face_expression_model-weights_manifest.json',
+  // manifesto e pesos: sem o .bin o face-api baixa 7 MB a cada marcação
+  ...MODELOS.flatMap((m) => [
+    `./models/${m}_model-weights_manifest.json`,
+    `./models/${m}_model.bin`,
+  ]),
 ];
 
 self.addEventListener('install', (e) => {

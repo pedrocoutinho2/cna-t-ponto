@@ -11,7 +11,8 @@ Faltam cinco passos manuais.
 
 ## 1. Expor o schema `ponto` na API  (sem isto, nada funciona)
 
-Painel do Supabase → **Settings → API → Exposed schemas** → acrescentar
+Painel → **Integrations → Data API → Settings → Exposed schemas** (em algumas
+versões o caminho é **Project Settings → Data API → Exposed schemas**) → acrescentar
 `ponto` ao lado de `public`. Salvar.
 
 O PostgREST só serve schemas listados ali. Enquanto `ponto` não estiver
