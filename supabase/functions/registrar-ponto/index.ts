@@ -18,12 +18,15 @@ import { verifyAuthenticationResponse } from "npm:@simplewebauthn/server@13";
 const LIMIAR_FACE = 0.62;      // similaridade de cosseno mínima
 const LIMIAR_LIVENESS = 0.70;  // confiança mínima do traço de vivacidade
 
-const RP_ID = Deno.env.get("WEBAUTHN_RP_ID")!;          // ex.: ponto.cnataquara.com.br
-const ORIGEM = Deno.env.get("ORIGEM_PWA")!;             // ex.: https://ponto.cnataquara.com.br
+// Valor de reserva proposital: sem ele, um segredo faltando produz o
+// cabeçalho "Access-Control-Allow-Origin: undefined", o navegador bloqueia
+// a resposta e a pessoa vê só "Load failed", sem pista do motivo.
+const ORIGEM = Deno.env.get("ORIGEM_PWA") ?? "https://ponto.cnataquara.com.br";
+const RP_ID = Deno.env.get("WEBAUTHN_RP_ID") ?? "ponto.cnataquara.com.br";
 
 const cors = {
   "Access-Control-Allow-Origin": ORIGEM,
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, content-type, apikey",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 

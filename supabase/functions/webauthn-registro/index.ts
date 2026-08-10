@@ -17,13 +17,16 @@ import {
   verifyRegistrationResponse,
 } from "npm:@simplewebauthn/server@13";
 
-const RP_ID = Deno.env.get("WEBAUTHN_RP_ID")!;
+// Valor de reserva proposital. Sem ele, um segredo faltando produz o
+// cabeçalho "Access-Control-Allow-Origin: undefined", o navegador bloqueia
+// a resposta e a pessoa vê apenas "Load failed" — sem pista do motivo.
+const ORIGEM = Deno.env.get("ORIGEM_PWA") ?? "https://ponto.cnataquara.com.br";
+const RP_ID = Deno.env.get("WEBAUTHN_RP_ID") ?? "ponto.cnataquara.com.br";
 const RP_NOME = "Ponto CNA Taquara";
-const ORIGEM = Deno.env.get("ORIGEM_PWA")!;
 
 const cors = {
   "Access-Control-Allow-Origin": ORIGEM,
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  "Access-Control-Allow-Headers": "authorization, content-type, apikey",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
