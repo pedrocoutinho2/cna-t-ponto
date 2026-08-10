@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ponto · Administração — CNA Taquara</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#E8E2D4; --papel-2:#F3EEE3; --tinta:#171B24; --fraca:#6B6F78;
+  --carimbo:#1E6B57; --alerta:#A8431C; --linha:#C6BCA6; --regua:#DCD4C2;
+  --sans:'Instrument Sans',system-ui,sans-serif;
+  --mono:'Azeret Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--papel);color:var(--tinta);font-family:var(--sans);font-size:14px}
+
+/* cabeçalho */
+header{
+  background:var(--tinta); color:var(--papel-2);
+  padding:14px 22px; display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
+  position:sticky; top:0; z-index:10;
+}
+header h1{font-size:14px; font-weight:600; letter-spacing:.02em}
+header .sub{font-size:11px; color:#9AA0AB; letter-spacing:.1em; text-transform:uppercase}
+nav{display:flex; gap:2px; margin-left:auto; flex-wrap:wrap}
+nav button{
+  background:transparent; border:0; color:#9AA0AB; cursor:pointer;
+  font-family:var(--sans); font-size:13px; padding:7px 13px; border-radius:2px;
+}
+nav button[aria-selected=true]{background:var(--papel-2); color:var(--tinta); font-weight:600}
+nav button:focus-visible{outline:2px solid var(--carimbo); outline-offset:2px}
+
+main{max-width:1240px; margin:0 auto; padding:22px}
+.painel[hidden]{display:none}
+
+/* barra de filtros */
+.filtros{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:18px}
+label.campo{display:flex; flex-direction:column; gap:4px}
+label.campo span{font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--fraca)}
+select,input[type=month],input[type=text],input[type=date],input[type=time],input[type=number]{
+  font-family:var(--mono); font-size:13px; padding:8px 10px;
+  border:1px solid var(--linha); background:var(--papel-2); color:var(--tinta); border-radius:2px;
+}
+textarea{
+  font-family:var(--sans); font-size:13px; padding:9px 10px; width:100%;
+  border:1px solid var(--linha); background:var(--papel-2); color:var(--tinta);
+  border-radius:2px; resize:vertical; min-height:70px;
+}
+button.acao{
+  background:var(--tinta); color:var(--papel-2); border:0; border-radius:2px;
+  padding:9px 16px; font-family:var(--sans); font-size:13px; font-weight:500; cursor:pointer;
+}
+button.leve{background:transparent; color:var(--tinta); border:1px solid var(--linha)}
+button.acao:disabled{opacity:.45; cursor:default}
+
+/* livro de ponto: a mesa é o elemento central deste painel */
+table{width:100%; border-collapse:collapse; background:var(--papel-2); border:1px solid var(--linha)}
+caption{
+  text-align:left; padding:13px 14px; font-size:10px; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--fraca); border-bottom:1px solid var(--linha);
+}
+th{
+  text-align:left; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--fraca); font-weight:500; padding:9px 11px; border-bottom:1px solid var(--linha);
+  white-space:nowrap;
+}
+td{padding:9px 11px; border-bottom:1px solid var(--regua); vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:rgba(198,188,166,.16)}
+td.n,th.n{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
+td.hora{font-family:var(--mono); font-variant-numeric:tabular-nums}
+.pos{color:var(--carimbo)} .neg{color:var(--alerta)}
+tr.fds td{background:rgba(198,188,166,.2); color:var(--fraca)}
+tr.problema td:first-child{box-shadow:inset 3px 0 0 var(--alerta)}
+.tag{
+  display:inline-block; font-size:10px; padding:2px 7px; border-radius:2px;
+  border:1px solid currentColor; letter-spacing:.02em; white-space:nowrap;
+}
+.tag.alerta{color:var(--alerta)} .tag.ok{color:var(--carimbo)} .tag.neutra{color:var(--fraca)}
+.mudo{color:var(--fraca)}
+.vazio{padding:30px 14px; color:var(--fraca); text-align:center; line-height:1.55}
+
+/* cartões de indicador */
+.indicadores{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:11px; margin-bottom:18px}
+.ind{background:var(--papel-2); border:1px solid var(--linha); padding:14px}
+.ind dt{font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--fraca)}
+.ind dd{font-family:var(--mono); font-size:27px; font-weight:700; letter-spacing:-.03em; margin-top:6px}
+.ind .nota{font-size:11.5px; color:var(--fraca); margin-top:3px; line-height:1.35}
+
+/* recorrência por dia da semana */
+.semana{display:grid; grid-template-columns:150px repeat(6,1fr); gap:3px; align-items:center}
+.semana .cab{font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--fraca); text-align:center}
+.semana .quem{font-size:13px; padding-right:9px}
+.cel{
+  height:38px; display:grid; place-items:center; font-family:var(--mono);
+  font-size:12px; border:1px solid var(--linha); background:var(--papel-2);
+}
+
+/* diálogo */
+dialog{
+  border:1px solid var(--linha); background:var(--papel-2); padding:0;
+  max-width:440px; width:calc(100% - 32px); border-radius:2px; color:var(--tinta);
+}
+dialog::backdrop{background:rgba(23,27,36,.5)}
+dialog h2{font-size:15px; padding:18px 20px 0}
+dialog .corpo{padding:16px 20px; display:grid; gap:12px}
+dialog .rodape{padding:14px 20px 18px; display:flex; gap:9px; justify-content:flex-end}
+dialog .nota{font-size:12px; color:var(--fraca); line-height:1.45}
+
+.aviso{
+  border-left:3px solid var(--alerta); background:rgba(168,67,28,.06);
+  padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:16px;
+}
+@media (max-width:760px){
+  main{padding:14px}
+  table{display:block; overflow-x:auto; white-space:nowrap}
+  .semana{grid-template-columns:110px repeat(6,1fr); font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Ponto · Administração</h1>
+  <span class="sub">CNA Taquara</span>
+  <nav role="tablist">
+    <button role="tab" data-aba="equipe"     aria-selected="true">Equipe</button>
+    <button role="tab" data-aba="espelho"    aria-selected="false">Espelho</button>
+    <button role="tab" data-aba="banco"      aria-selected="false">Banco de horas</button>
+    <button role="tab" data-aba="pendencias" aria-selected="false">Pendências</button>
+    <button role="tab" data-aba="relatorios" aria-selected="false">Relatórios</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============ EQUIPE ============ -->
+<section class="painel" id="p-equipe">
+  <div class="filtros">
+    <label class="campo"><span>Buscar</span><input type="text" id="q-equipe" placeholder="nome ou cargo"></label>
+    <label class="campo"><span>Situação</span>
+      <select id="f-situacao"><option value="ativo">Ativos</option><option value="todos">Todos</option><option value="inativo">Desligados</option></select>
+    </label>
+    <button class="acao" id="btn-novo" style="margin-left:auto">Cadastrar pessoa</button>
+  </div>
+  <table>
+    <caption>Equipe cadastrada</caption>
+    <thead><tr>
+      <th>Nome</th><th>Cargo</th><th>CPF</th><th>Jornada</th>
+      <th>Admissão</th><th class="n">Banco</th><th>Situação</th><th></th>
+    </tr></thead>
+    <tbody id="t-equipe"></tbody>
+  </table>
+</section>
+
+<!-- ============ ESPELHO ============ -->
+<section class="painel" id="p-espelho" hidden>
+  <div class="filtros">
+    <label class="campo"><span>Pessoa</span><select id="e-pessoa"></select></label>
+    <label class="campo"><span>Mês</span><input type="month" id="e-mes"></label>
+    <button class="acao leve" id="btn-fechar-mes">Fechar mês no banco</button>
+    <button class="acao leve" id="btn-csv">Exportar CSV</button>
+  </div>
+  <div id="e-indicadores" class="indicadores"></div>
+  <table>
+    <caption id="e-titulo">Espelho de ponto</caption>
+    <thead><tr>
+      <th>Dia</th><th>Entrada</th><th>Saída almoço</th><th>Volta</th><th>Saída</th>
+      <th class="n">Trab.</th><th class="n">Interv.</th><th class="n">Atraso</th>
+      <th class="n">Saldo</th><th>Situação</th><th></th>
+    </tr></thead>
+    <tbody id="t-espelho"></tbody>
+  </table>
+</section>
+
+<!-- ============ BANCO ============ -->
+<section class="painel" id="p-banco" hidden>
+  <div class="aviso" id="banco-aviso"></div>
+  <div class="filtros">
+    <label class="campo"><span>Pessoa</span><select id="b-pessoa"><option value="">Todas</option></select></label>
+    <label class="campo"><span>De</span><input type="date" id="b-ini"></label>
+    <label class="campo"><span>Até</span><input type="date" id="b-fim"></label>
+  </div>
+  <table id="tb-banco">
+    <caption>Saldo por pessoa</caption>
+    <thead><tr><th>Nome</th><th class="n">Saldo</th><th>Situação</th><th class="n">Prazo</th></tr></thead>
+    <tbody id="t-banco"></tbody>
+  </table>
+  <div style="height:18px"></div>
+  <table id="tb-extrato" hidden>
+    <caption>Extrato</caption>
+    <thead><tr><th>Data</th><th>Origem</th><th class="n">Lançamento</th><th class="n">Acumulado</th><th>Observação</th></tr></thead>
+    <tbody id="t-extrato"></tbody>
+  </table>
+</section>
+
+<!-- ============ PENDÊNCIAS ============ -->
+<section class="painel" id="p-pendencias" hidden>
+  <div class="filtros">
+    <label class="campo"><span>De</span><input type="date" id="pd-ini"></label>
+    <label class="campo"><span>Até</span><input type="date" id="pd-fim"></label>
+  </div>
+  <table>
+    <caption>Dias em aberto — marcação faltando ou sobrando</caption>
+    <thead><tr><th>Pessoa</th><th>Data</th><th>Situação</th><th>Justificativa</th><th></th></tr></thead>
+    <tbody id="t-aberto"></tbody>
+  </table>
+  <div style="height:18px"></div>
+  <table>
+    <caption>Marcações sinalizadas — fora da cerca, rede ou biometria</caption>
+    <thead><tr><th>Pessoa</th><th>Quando</th><th>Local</th><th>Identidade</th><th class="n">Distância</th><th></th></tr></thead>
+    <tbody id="t-sinalizadas"></tbody>
+  </table>
+</section>
+
+<!-- ============ RELATÓRIOS ============ -->
+<section class="painel" id="p-relatorios" hidden>
+  <div class="filtros">
+    <label class="campo"><span>De</span><input type="date" id="r-ini"></label>
+    <label class="campo"><span>Até</span><input type="date" id="r-fim"></label>
+  </div>
+  <table>
+    <caption>Resumo do período</caption>
+    <thead><tr>
+      <th>Pessoa</th><th class="n">Dias prev.</th><th class="n">Trabalhados</th>
+      <th class="n">Faltas</th><th class="n">Atrasos</th><th class="n">Min. atraso</th>
+      <th class="n">Horas</th><th class="n">Saldo</th><th class="n">Interv. curto</th><th class="n">Em aberto</th>
+    </tr></thead>
+    <tbody id="t-resumo"></tbody>
+  </table>
+
+  <h2 style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--fraca);margin:26px 0 11px">
+    Atraso por dia da semana
+  </h2>
+  <p class="mudo" style="font-size:12.5px;line-height:1.5;margin-bottom:13px;max-width:66ch">
+    Cada célula mostra quantas vezes a pessoa chegou atrasada naquele dia, sobre quantos
+    dias ela deveria ter trabalhado. Atraso espalhado é acidente. Atraso concentrado num
+    dia só é padrão, e padrão se resolve com conversa, não com desconto.
+  </p>
+  <div class="semana" id="mapa-semana"></div>
+
+  <h2 style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--fraca);margin:26px 0 11px">
+    Faltas e ausências
+  </h2>
+  <table>
+    <thead><tr><th>Pessoa</th><th>Data</th><th>Dia</th><th>Situação</th><th>Justificativa</th></tr></thead>
+    <tbody id="t-faltas"></tbody>
+  </table>
+</section>
+
+</main>
+
+<!-- diálogo de cadastro -->
+<dialog id="dlg-pessoa">
+  <h2 id="dlg-pessoa-titulo">Cadastrar pessoa</h2>
+  <div class="corpo">
+    <label class="campo"><span>Nome completo</span><input type="text" id="f-nome" maxlength="52"></label>
+    <label class="campo"><span>CPF</span><input type="text" id="f-cpf" inputmode="numeric" maxlength="14"></label>
+    <label class="campo"><span>Cargo</span><input type="text" id="f-cargo"></label>
+    <label class="campo"><span>Admissão</span><input type="date" id="f-admissao"></label>
+    <label class="campo"><span>Jornada</span><select id="f-jornada"></select></label>
+  </div>
+  <div class="rodape">
+    <button class="acao leve" id="dlg-pessoa-cancelar">Cancelar</button>
+    <button class="acao" id="dlg-pessoa-salvar">Salvar</button>
+  </div>
+</dialog>
+
+<!-- diálogo de ajuste -->
+<dialog id="dlg-ajuste">
+  <h2 id="dlg-ajuste-titulo">Ajustar dia</h2>
+  <div class="corpo">
+    <p class="nota" id="dlg-ajuste-contexto"></p>
+    <label class="campo"><span>O que fazer</span>
+      <select id="a-tipo">
+        <option value="insercao">Inserir marcação esquecida</option>
+        <option value="abono">Abonar ausência ou atraso</option>
+        <option value="atestado">Atestado médico</option>
+        <option value="folga">Folga</option>
+        <option value="ferias">Férias</option>
+        <option value="compensacao">Compensar saldo do banco</option>
+      </select>
+    </label>
+    <label class="campo" id="a-wrap-hora"><span>Horário</span><input type="time" id="a-hora"></label>
+    <label class="campo" id="a-wrap-min" hidden><span>Minutos</span><input type="number" id="a-min" step="5"></label>
+    <label class="campo"><span>Justificativa</span>
+      <textarea id="a-just" placeholder="Por que este ajuste está sendo feito. Fica registrado com seu nome."></textarea>
+    </label>
+    <p class="nota">
+      A marcação original nunca é apagada. O ajuste entra como uma camada por cima,
+      com autor e data, e pode ser cancelado depois.
+    </p>
+  </div>
+  <div class="rodape">
+    <button class="acao leve" id="dlg-ajuste-cancelar">Cancelar</button>
+    <button class="acao" id="dlg-ajuste-salvar">Registrar ajuste</button>
+  </div>
+</dialog>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const CFG = { url:'https://snipevyvfxaotjhnabmx.supabase.co', anon:'sb_publishable_T0rV6HAXusL_3J3Yzh-P_Q_CieYFkjA', tz:'America/Sao_Paulo' };
+const sb = createClient(CFG.url, CFG.anon);
+const P  = sb.schema('ponto');
+const $  = (id) => document.getElementById(id);
+
+let EU = null, EQUIPE = [], JORNADAS = [], editando = null, ajustando = null;
+
+/* ---------- formatação ---------- */
+const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function hm(min){
+  if (min === null || min === undefined) return '—';
+  const s = min < 0 ? '-' : '';
+  const a = Math.abs(min);
+  return `${s}${Math.floor(a/60)}:${String(a%60).padStart(2,'0')}`;
+}
+function saldoCel(min){
+  if (min === null || min === undefined) return '<td class="n mudo">—</td>';
+  const c = min > 0 ? 'pos' : min < 0 ? 'neg' : '';
+  return `<td class="n ${c}">${min > 0 ? '+' : ''}${hm(min)}</td>`;
+}
+function hora(iso){
+  if (!iso) return '<span class="mudo">—</span>';
+  return new Intl.DateTimeFormat('pt-BR',{timeZone:CFG.tz,hour:'2-digit',minute:'2-digit',hour12:false})
+    .format(new Date(iso));
+}
+const dia = (d) => d.split('-').reverse().slice(0,2).join('/');
+const esc = (s) => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+
+function periodoDoMes(mes){
+  const [a,m] = mes.split('-').map(Number);
+  return [`${mes}-01`, new Date(a, m, 0).toISOString().slice(0,10)];
+}
+
+/* ---------- navegação ---------- */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.setAttribute('aria-selected', x === b));
+  document.querySelectorAll('.painel').forEach(p => p.hidden = p.id !== `p-${b.dataset.aba}`);
+  ({ espelho:carregarEspelho, banco:carregarBanco,
+     pendencias:carregarPendencias, relatorios:carregarRelatorios }[b.dataset.aba] ?? (()=>{}))();
+});
+
+/* ================= EQUIPE ================= */
+async function carregarEquipe(){
+  const { data } = await P.from('empregados')
+    .select('id,nome,cpf,cargo,admissao,demissao,ativo').order('nome');
+  EQUIPE = data ?? [];
+
+  const saldos = Object.fromEntries(await Promise.all(EQUIPE.map(async e => {
+    const { data: s } = await P.rpc('saldo_banco', { p_emp: e.id });
+    return [e.id, s ?? 0];
+  })));
+
+  const q = $('q-equipe').value.toLowerCase();
+  const f = $('f-situacao').value;
+  const lista = EQUIPE.filter(e =>
+    (f === 'todos' || (f === 'ativo') === !!e.ativo) &&
+    (!q || `${e.nome} ${e.cargo ?? ''}`.toLowerCase().includes(q)));
+
+  $('t-equipe').innerHTML = lista.length ? lista.map(e => `
+    <tr>
+      <td><strong>${esc(e.nome)}</strong></td>
+      <td>${esc(e.cargo) || '<span class="mudo">—</span>'}</td>
+      <td class="hora">${e.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')}</td>
+      <td class="mudo" data-jornada="${e.id}">—</td>
+      <td class="hora">${e.admissao.split('-').reverse().join('/')}</td>
+      ${saldoCel(saldos[e.id])}
+      <td>${e.ativo
+        ? '<span class="tag ok">ativo</span>'
+        : `<span class="tag neutra">desligado ${e.demissao ? e.demissao.split('-').reverse().slice(0,2).join('/') : ''}</span>`}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="acao leve" data-editar="${e.id}">Editar</button>
+        ${e.ativo ? `<button class="acao leve" data-desligar="${e.id}">Desligar</button>` : ''}
+      </td>
+    </tr>`).join('')
+    : '<tr><td colspan="8" class="vazio">Nenhuma pessoa encontrada com esses filtros.</td></tr>';
+
+  ['e-pessoa','b-pessoa'].forEach(id => {
+    const sel = $(id), atual = sel.value;
+    const base = id === 'b-pessoa' ? '<option value="">Todas</option>' : '';
+    sel.innerHTML = base + EQUIPE.filter(e => e.ativo)
+      .map(e => `<option value="${e.id}">${esc(e.nome)}</option>`).join('');
+    if (atual) sel.value = atual;
+  });
+}
+
+$('q-equipe').oninput = carregarEquipe;
+$('f-situacao').onchange = carregarEquipe;
+
+$('t-equipe').onclick = async (ev) => {
+  const ed = ev.target.dataset.editar, de = ev.target.dataset.desligar;
+  if (ed) return abrirPessoa(EQUIPE.find(x => x.id === ed));
+  if (de){
+    const p = EQUIPE.find(x => x.id === de);
+    const data = prompt(
+      `Desligar ${p.nome}.\n\nO cadastro não é apagado: as marcações e o espelho de ponto ` +
+      `continuam disponíveis, como manda o prazo de guarda trabalhista. ` +
+      `A pessoa apenas deixa de conseguir bater ponto.\n\nData do desligamento (AAAA-MM-DD):`,
+      new Date().toISOString().slice(0,10));
+    if (!data) return;
+    await P.from('empregados').update({ ativo:false, demissao:data }).eq('id', de);
+    await P.from('biometria_facial').update({ revogado_em:new Date().toISOString() }).eq('empregado_id', de);
+    await P.from('dispositivos').update({ ativo:false }).eq('empregado_id', de);
+    carregarEquipe();
+  }
+};
+
+function abrirPessoa(p){
+  editando = p ?? null;
+  $('dlg-pessoa-titulo').textContent = p ? 'Editar pessoa' : 'Cadastrar pessoa';
+  $('f-nome').value = p?.nome ?? '';
+  $('f-cpf').value  = p?.cpf ?? '';
+  $('f-cargo').value = p?.cargo ?? '';
+  $('f-admissao').value = p?.admissao ?? new Date().toISOString().slice(0,10);
+  $('f-jornada').innerHTML = JORNADAS.map(j => `<option value="${j.id}">${esc(j.nome)}</option>`).join('');
+  $('dlg-pessoa').showModal();
+}
+$('btn-novo').onclick = () => abrirPessoa(null);
+$('dlg-pessoa-cancelar').onclick = () => $('dlg-pessoa').close();
+
+$('dlg-pessoa-salvar').onclick = async () => {
+  const cpf = $('f-cpf').value.replace(/\D/g,'');
+  if (cpf.length !== 11) return alert('CPF precisa ter 11 dígitos.');
+  if (!$('f-nome').value.trim()) return alert('Informe o nome completo.');
+
+  const dados = {
+    nome: $('f-nome').value.trim().toUpperCase(),
+    cpf, cargo: $('f-cargo').value.trim() || null,
+    admissao: $('f-admissao').value,
+  };
+
+  if (editando){
+    await P.from('empregados').update(dados).eq('id', editando.id);
+  } else {
+    const { data: rep } = await P.from('rep').select('id').limit(1).single();
+    const { data: novo, error } = await P.from('empregados')
+      .insert({ ...dados, rep_id: rep.id }).select('id').single();
+    if (error) return alert(error.message.includes('duplicate') ? 'Já existe alguém com este CPF.' : error.message);
+    await P.from('empregado_jornada').insert({
+      empregado_id: novo.id, jornada_id: $('f-jornada').value,
+      vigencia: `[${dados.admissao},)`,
+    });
+  }
+  $('dlg-pessoa').close();
+  carregarEquipe();
+};
+
+/* ================= ESPELHO ================= */
+async function carregarEspelho(){
+  const emp = $('e-pessoa').value;
+  if (!emp) return;
+  const [ini, fim] = periodoDoMes($('e-mes').value);
+  const { data } = await P.rpc('espelho', { p_emp:emp, p_ini:ini, p_fim:fim });
+  const linhas = data ?? [];
+
+  const somaSe = (f) => linhas.filter(f).length;
+  const soma = (k) => linhas.reduce((a,l) => a + (l[k] ?? 0), 0);
+  const { data: banco } = await P.rpc('saldo_banco', { p_emp:emp, p_ate:fim });
+
+  $('e-titulo').textContent =
+    `Espelho de ponto — ${$('e-pessoa').selectedOptions[0].textContent}`;
+
+  $('e-indicadores').innerHTML = `
+    <div class="ind"><dt>Horas trabalhadas</dt><dd>${hm(soma('trabalhado_min'))}</dd>
+      <p class="nota">previsto ${hm(soma('carga_prev_min'))}</p></div>
+    <div class="ind"><dt>Saldo do mês</dt><dd class="${soma('saldo_min')>=0?'pos':'neg'}">${soma('saldo_min')>0?'+':''}${hm(soma('saldo_min'))}</dd>
+      <p class="nota">banco acumulado ${hm(banco)}</p></div>
+    <div class="ind"><dt>Atrasos</dt><dd>${somaSe(l=>l.atraso_min>0)}</dd>
+      <p class="nota">${hm(soma('atraso_min'))} no total</p></div>
+    <div class="ind"><dt>Faltas</dt><dd>${somaSe(l=>l.falta)}</dd>
+      <p class="nota">sem abono lançado</p></div>
+    <div class="ind"><dt>Dias em aberto</dt><dd class="${somaSe(l=>!l.apurado)?'neg':''}">${somaSe(l=>!l.apurado)}</dd>
+      <p class="nota">esperando ajuste</p></div>`;
+
+  $('t-espelho').innerHTML = linhas.map(l => {
+    const fds = l.dia_semana === 0 || l.dia_semana === 6;
+    const problema = !l.apurado || l.falta || l.inconsistencias?.length;
+    let situacao = '<span class="tag ok">ok</span>';
+    if (l.feriado)        situacao = `<span class="tag neutra">${esc(l.feriado)}</span>`;
+    else if (!l.apurado)  situacao = '<span class="tag alerta">em aberto</span>';
+    else if (l.falta)     situacao = '<span class="tag alerta">falta</span>';
+    else if (l.abono_min) situacao = '<span class="tag neutra">abonado</span>';
+    else if (l.carga_prev_min === 0) situacao = '<span class="tag neutra">folga</span>';
+    const notas = (l.inconsistencias ?? []).map(i => `<div class="mudo" style="font-size:11px;margin-top:3px">${esc(i)}</div>`).join('');
+
+    return `<tr class="${fds?'fds':''} ${problema?'problema':''}">
+      <td class="hora">${dia(l.data)} <span class="mudo">${DOW[l.dia_semana]}</span></td>
+      <td class="hora">${hora(l.entrada)}</td>
+      <td class="hora">${hora(l.saida_almoco)}</td>
+      <td class="hora">${hora(l.volta_almoco)}</td>
+      <td class="hora">${hora(l.saida)}</td>
+      <td class="n">${l.trabalhado_min === null ? '—' : hm(l.trabalhado_min)}</td>
+      <td class="n ${l.intervalo_min !== null && l.carga_prev_min > 360 && l.intervalo_min < 60 ? 'neg' : ''}">${l.intervalo_min === null ? '—' : hm(l.intervalo_min)}</td>
+      <td class="n ${l.atraso_min ? 'neg' : ''}">${l.atraso_min ? hm(l.atraso_min) : '—'}</td>
+      ${saldoCel(l.saldo_min)}
+      <td>${situacao}${notas}</td>
+      <td style="text-align:right"><button class="acao leve" data-ajustar="${l.data}">Ajustar</button></td>
+    </tr>`;
+  }).join('');
+}
+
+$('e-pessoa').onchange = carregarEspelho;
+$('e-mes').onchange = carregarEspelho;
+
+$('t-espelho').onclick = (ev) => {
+  const d = ev.target.dataset.ajustar;
+  if (!d) return;
+  ajustando = { emp: $('e-pessoa').value, data: d };
+  $('dlg-ajuste-titulo').textContent = `Ajustar ${dia(d)}`;
+  $('dlg-ajuste-contexto').textContent =
+    `${$('e-pessoa').selectedOptions[0].textContent} · ${d.split('-').reverse().join('/')}`;
+  $('a-just').value = '';
+  $('dlg-ajuste').showModal();
+};
+
+$('a-tipo').onchange = () => {
+  const t = $('a-tipo').value;
+  $('a-wrap-hora').hidden = t !== 'insercao';
+  $('a-wrap-min').hidden  = t === 'insercao';
+};
+$('dlg-ajuste-cancelar').onclick = () => $('dlg-ajuste').close();
+
+$('dlg-ajuste-salvar').onclick = async () => {
+  const tipo = $('a-tipo').value;
+  const just = $('a-just').value.trim();
+  if (just.length < 5) return alert('Escreva a justificativa. Ela fica registrada com seu nome.');
+
+  const reg = {
+    empregado_id: ajustando.emp, data: ajustando.data, tipo,
+    justificativa: just, criado_por: EU.id,
+  };
+  if (tipo === 'insercao'){
+    if (!$('a-hora').value) return alert('Informe o horário da marcação.');
+    reg.horario = new Date(`${ajustando.data}T${$('a-hora').value}:00-03:00`).toISOString();
+  } else {
+    reg.minutos = Number($('a-min').value || 0);
+  }
+
+  const { error } = await P.from('ajustes').insert(reg);
+  if (error) return alert(error.message);
+  $('dlg-ajuste').close();
+  carregarEspelho();
+};
+
+$('btn-fechar-mes').onclick = async () => {
+  const [ini, fim] = periodoDoMes($('e-mes').value);
+  const { data } = await P.rpc('fechar_banco', { p_emp:$('e-pessoa').value, p_ini:ini, p_fim:fim });
+  alert(`${data} dias lançados no banco de horas.\n\nDias em aberto não são lançados — resolva os ajustes primeiro.`);
+  carregarEspelho();
+};
+
+$('btn-csv').onclick = async () => {
+  const [ini, fim] = periodoDoMes($('e-mes').value);
+  const { data } = await P.rpc('espelho', { p_emp:$('e-pessoa').value, p_ini:ini, p_fim:fim });
+  const cab = 'data;entrada;saida_almoco;volta_almoco;saida;trabalhado;intervalo;atraso;saldo;situacao';
+  const linhas = data.map(l => [
+    l.data, hora(l.entrada), hora(l.saida_almoco), hora(l.volta_almoco), hora(l.saida),
+    hm(l.trabalhado_min), hm(l.intervalo_min), hm(l.atraso_min), hm(l.saldo_min),
+    l.falta ? 'falta' : !l.apurado ? 'em aberto' : 'ok',
+  ].join(';'));
+  const blob = new Blob(['\ufeff' + [cab, ...linhas].join('\n')], { type:'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  Object.assign(document.createElement('a'), {
+    href:url, download:`espelho-${$('e-pessoa').selectedOptions[0].textContent}-${$('e-mes').value}.csv`
+  }).click();
+  URL.revokeObjectURL(url);
+};
+
+/* ================= BANCO ================= */
+async function carregarBanco(){
+  const fim = $('b-fim').value;
+  const { data: cfg } = await P.from('banco_config').select('prazo_meses,teto_positivo_min,teto_negativo_min').maybeSingle();
+  const prazo = cfg?.prazo_meses ?? 6;
+
+  $('banco-aviso').innerHTML =
+    `Banco de horas por acordo individual escrito compensa em até 6 meses; por acordo ou ` +
+    `convenção coletiva, até 12. Saldo positivo não compensado no prazo vira hora extra ` +
+    `a pagar, com adicional. A coluna <strong>Prazo</strong> mostra quanto tempo resta ` +
+    `para o saldo mais antigo de cada pessoa. Confirme com seu contador qual instrumento ` +
+    `vocês têm assinado antes de confiar no prazo de ${prazo} meses configurado aqui.`;
+
+  const linhas = await Promise.all(EQUIPE.filter(e => e.ativo).map(async e => {
+    const { data: s } = await P.rpc('saldo_banco', { p_emp:e.id, p_ate:fim });
+    const { data: ant } = await P.from('banco_lancamentos')
+      .select('data').eq('empregado_id', e.id).gt('minutos', 0)
+      .order('data').limit(1).maybeSingle();
+    let restam = null;
+    if (ant && s > 0){
+      const venc = new Date(ant.data);
+      venc.setMonth(venc.getMonth() + prazo);
+      restam = Math.round((venc - new Date()) / 86400000);
+    }
+    return { e, s: s ?? 0, restam };
+  }));
+
+  $('t-banco').innerHTML = linhas.map(({e,s,restam}) => {
+    const estouro = cfg && (s > cfg.teto_positivo_min || s < cfg.teto_negativo_min);
+    return `<tr>
+      <td><button class="acao leve" data-extrato="${e.id}">${esc(e.nome)}</button></td>
+      ${saldoCel(s)}
+      <td>${estouro ? '<span class="tag alerta">fora do teto</span>'
+           : s === 0 ? '<span class="tag neutra">zerado</span>'
+           : `<span class="tag ${s>0?'ok':'alerta'}">${s>0?'a compensar':'a repor'}</span>`}</td>
+      <td class="n ${restam !== null && restam < 30 ? 'neg' : ''}">${restam === null ? '—' : `${restam} d`}</td>
+    </tr>`;
+  }).join('');
+}
+
+$('t-banco').onclick = async (ev) => {
+  const id = ev.target.dataset.extrato;
+  if (!id) return;
+  const { data } = await P.rpc('extrato_banco', { p_emp:id, p_ini:$('b-ini').value, p_fim:$('b-fim').value });
+  $('tb-extrato').hidden = false;
+  $('t-extrato').innerHTML = (data ?? []).map(l => `<tr>
+    <td class="hora">${dia(l.data)}</td>
+    <td>${esc(l.origem)}</td>
+    ${saldoCel(l.minutos)}${saldoCel(l.acumulado)}
+    <td class="mudo">${esc(l.observacao) || '—'}</td>
+  </tr>`).join('') || '<tr><td colspan="5" class="vazio">Sem lançamentos no período.</td></tr>';
+};
+['b-ini','b-fim','b-pessoa'].forEach(id => $(id).onchange = carregarBanco);
+
+/* ================= PENDÊNCIAS ================= */
+async function carregarPendencias(){
+  const ini = $('pd-ini').value, fim = $('pd-fim').value;
+  const { data: faltas } = await P.rpc('relatorio_faltas', { p_ini:ini, p_fim:fim });
+
+  $('t-aberto').innerHTML = (faltas ?? []).length ? faltas.map(f => `<tr>
+    <td>${esc(f.nome)}</td>
+    <td class="hora">${dia(f.data)} <span class="mudo">${DOW[f.dia_semana]}</span></td>
+    <td><span class="tag ${f.situacao === 'ausência abonada' ? 'neutra' : 'alerta'}">${esc(f.situacao)}</span></td>
+    <td class="mudo">${esc(f.justificativa) || '—'}</td>
+    <td style="text-align:right"><button class="acao leve" data-ir="${f.empregado_id}|${f.data}">Abrir espelho</button></td>
+  </tr>`).join('')
+    : '<tr><td colspan="5" class="vazio">Nada em aberto no período. Bom sinal.</td></tr>';
+
+  const { data: sin } = await P.from('v_pendencias').select('*').limit(80);
+  $('t-sinalizadas').innerHTML = (sin ?? []).length ? sin.map(s => `<tr>
+    <td>${esc(s.nome)}</td>
+    <td class="hora">${dia(s.dh_marcacao.slice(0,10))} ${hora(s.dh_marcacao)}</td>
+    <td>${s.dentro_cerca ? '<span class="tag ok">na escola</span>'
+        : s.ip_autorizado ? '<span class="tag ok">rede da escola</span>'
+        : '<span class="tag alerta">fora</span>'}</td>
+    <td>${s.face_ok && s.liveness_ok ? '<span class="tag ok">confirmada</span>'
+        : '<span class="tag alerta">não confirmada</span>'}</td>
+    <td class="n">${s.distancia_cerca_m ? Math.round(s.distancia_cerca_m) + ' m' : '—'}</td>
+    <td style="text-align:right">
+      <button class="acao leve" data-aceitar="${s.arp_id}">Aceitar</button>
+      <button class="acao leve" data-contestar="${s.arp_id}">Contestar</button>
+    </td>
+  </tr>`).join('')
+    : '<tr><td colspan="6" class="vazio">Nenhuma marcação sinalizada.</td></tr>';
+}
+
+$('t-sinalizadas').onclick = async (ev) => {
+  const ac = ev.target.dataset.aceitar, ct = ev.target.dataset.contestar;
+  const id = ac || ct;
+  if (!id) return;
+  const obs = ct ? prompt('Por que esta marcação está sendo contestada?') : null;
+  if (ct && !obs) return;
+  await P.from('marcacao_contexto').update({
+    revisao: ac ? 'aceita' : 'contestada',
+    revisado_por: EU.id, revisado_em: new Date().toISOString(), observacao: obs,
+  }).eq('arp_id', id);
+  carregarPendencias();
+};
+
+$('t-aberto').onclick = (ev) => {
+  const ir = ev.target.dataset.ir;
+  if (!ir) return;
+  const [emp, data] = ir.split('|');
+  $('e-pessoa').value = emp;
+  $('e-mes').value = data.slice(0,7);
+  document.querySelector('nav button[data-aba=espelho]').click();
+};
+['pd-ini','pd-fim'].forEach(id => $(id).onchange = carregarPendencias);
+
+/* ================= RELATÓRIOS ================= */
+async function carregarRelatorios(){
+  const ini = $('r-ini').value, fim = $('r-fim').value;
+
+  const { data: resumo } = await P.rpc('resumo_equipe', { p_ini:ini, p_fim:fim });
+  $('t-resumo').innerHTML = (resumo ?? []).map(r => `<tr>
+    <td><strong>${esc(r.nome)}</strong>${r.cargo ? `<div class="mudo" style="font-size:11.5px">${esc(r.cargo)}</div>` : ''}</td>
+    <td class="n">${r.dias_previstos}</td>
+    <td class="n">${r.dias_trabalhados}</td>
+    <td class="n ${r.faltas ? 'neg' : ''}">${r.faltas}</td>
+    <td class="n ${r.qtd_atrasos ? 'neg' : ''}">${r.qtd_atrasos}</td>
+    <td class="n">${hm(r.atraso_total_min)}</td>
+    <td class="n">${hm(r.trabalhado_min)}</td>
+    ${saldoCel(r.saldo_periodo_min)}
+    <td class="n ${r.intervalo_irregular ? 'neg' : ''}">${r.intervalo_irregular}</td>
+    <td class="n ${r.dias_em_aberto ? 'neg' : ''}">${r.dias_em_aberto}</td>
+  </tr>`).join('');
+
+  const { data: rec } = await P.rpc('recorrencia_atrasos', { p_ini:ini, p_fim:fim });
+  const porPessoa = {};
+  for (const r of rec ?? []){
+    (porPessoa[r.nome] ??= {})[r.dia_semana] = r;
+  }
+  const cab = '<div></div>' + [1,2,3,4,5,6].map(d => `<div class="cab">${DOW[d]}</div>`).join('');
+  const corpo = Object.entries(porPessoa).map(([nome, dias]) =>
+    `<div class="quem">${esc(nome)}</div>` + [1,2,3,4,5,6].map(d => {
+      const r = dias[d];
+      if (!r) return '<div class="cel mudo">·</div>';
+      const forte = r.taxa >= 0.5;
+      return `<div class="cel" style="${forte
+        ? 'background:rgba(168,67,28,.13);border-color:var(--alerta);color:var(--alerta);font-weight:700'
+        : ''}" title="média de ${r.atraso_medio_min} min">${r.ocorrencias}/${r.dias_no_periodo}</div>`;
+    }).join('')).join('');
+
+  $('mapa-semana').innerHTML = Object.keys(porPessoa).length
+    ? cab + corpo
+    : '<p class="vazio" style="grid-column:1/-1">Nenhum atraso registrado no período.</p>';
+
+  const { data: faltas } = await P.rpc('relatorio_faltas', { p_ini:ini, p_fim:fim });
+  $('t-faltas').innerHTML = (faltas ?? []).length ? faltas.map(f => `<tr>
+    <td>${esc(f.nome)}</td>
+    <td class="hora">${dia(f.data)}</td>
+    <td class="mudo">${DOW[f.dia_semana]}</td>
+    <td><span class="tag ${f.situacao === 'ausência abonada' ? 'neutra' : 'alerta'}">${esc(f.situacao)}</span></td>
+    <td class="mudo">${esc(f.justificativa) || '—'}</td>
+  </tr>`).join('')
+    : '<tr><td colspan="5" class="vazio">Nenhuma falta no período.</td></tr>';
+}
+['r-ini','r-fim'].forEach(id => $(id).onchange = carregarRelatorios);
+
+/* ================= BOOT ================= */
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session){ location.href = './entrar.html'; return; }
+
+  const { data: eu } = await P.from('empregados').select('id,nome').maybeSingle();
+  EU = eu;
+
+  const { data: j } = await P.from('jornadas').select('id,nome').eq('ativa', true);
+  JORNADAS = j ?? [];
+
+  const hoje = new Date();
+  const primeiro = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0,10);
+  const hojeStr = hoje.toISOString().slice(0,10);
+  $('e-mes').value = hojeStr.slice(0,7);
+  ['b-ini','pd-ini','r-ini'].forEach(id => $(id).value = primeiro);
+  ['b-fim','pd-fim','r-fim'].forEach(id => $(id).value = hojeStr);
+
+  await carregarEquipe();
+})();
+</script>
+</body>
+</html>
