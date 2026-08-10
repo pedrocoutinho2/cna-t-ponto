@@ -60,6 +60,15 @@ h1,h2,h3,.display{font-family:var(--display); letter-spacing:-.01em}
 .marca .lockup b{color:var(--vermelho)} .marca .lockup i{color:var(--azul); font-style:normal; font-weight:600}
 .marca img[data-falhou]{display:none}
 .marca img[data-falhou] + .lockup{display:block}
+
+/* Duas versões, escolhidas pelo fundo — nunca recoloridas por CSS.
+   Filtro sobre PNG suja as bordas e viola a regra de não recolorir. */
+.marca .colorida{display:block}   /* fundo branco ou claro */
+.marca .branca{display:none}      /* fundo vermelho, azul ou escuro */
+.sobre-cor .marca .colorida{display:none}
+.sobre-cor .marca .branca{display:block}
+.sobre-cor .marca .unidade{color:rgba(255,255,255,.85); border-left-color:rgba(255,255,255,.3)}
+.sobre-cor .marca .lockup b,.sobre-cor .marca .lockup i{color:var(--branco)}
 .marca .unidade{
   font-family:var(--display); font-size:10.5px; font-weight:500;
   letter-spacing:.14em; text-transform:uppercase; color:var(--cinza);
