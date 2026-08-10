@@ -148,7 +148,7 @@ dialog .nota{font-size:12px; color:var(--fraca); line-height:1.45}
   <table>
     <caption>Equipe cadastrada</caption>
     <thead><tr>
-      <th>Nome</th><th>Cargo</th><th>CPF</th><th>Jornada</th>
+      <th>Nome</th><th>Cargo</th><th>E-mail</th><th>Acesso</th>
       <th>Admissão</th><th class="n">Banco</th><th>Situação</th><th></th>
     </tr></thead>
     <tbody id="t-equipe"></tbody>
@@ -258,6 +258,7 @@ dialog .nota{font-size:12px; color:var(--fraca); line-height:1.45}
   <div class="corpo">
     <label class="campo"><span>Nome completo</span><input type="text" id="f-nome" maxlength="52"></label>
     <label class="campo"><span>CPF</span><input type="text" id="f-cpf" inputmode="numeric" maxlength="14"></label>
+    <label class="campo"><span>E-mail de acesso</span><input type="text" id="f-email" inputmode="email"></label>
     <label class="campo"><span>Cargo</span><input type="text" id="f-cargo"></label>
     <label class="campo"><span>Admissão</span><input type="date" id="f-admissao"></label>
     <label class="campo"><span>Jornada</span><select id="f-jornada"></select></label>
@@ -347,7 +348,7 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
 /* ================= EQUIPE ================= */
 async function carregarEquipe(){
   const { data } = await P.from('empregados')
-    .select('id,nome,cpf,cargo,admissao,demissao,ativo').order('nome');
+    .select('id,nome,cpf,cargo,email,auth_user_id,admissao,demissao,ativo').order('nome');
   EQUIPE = data ?? [];
 
   const saldos = Object.fromEntries(await Promise.all(EQUIPE.map(async e => {
@@ -365,8 +366,11 @@ async function carregarEquipe(){
     <tr>
       <td><strong>${esc(e.nome)}</strong></td>
       <td>${esc(e.cargo) || '<span class="mudo">—</span>'}</td>
-      <td class="hora">${e.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')}</td>
-      <td class="mudo" data-jornada="${e.id}">—</td>
+      <td class="mudo" style="font-size:12px">${esc(e.email) || '—'}</td>
+      <td>${e.auth_user_id
+        ? '<span class="tag ok">vinculado</span>'
+        : e.email ? '<span class="tag neutra">aguardando 1º login</span>'
+                  : '<span class="tag alerta">sem e-mail</span>'}</td>
       <td class="hora">${e.admissao.split('-').reverse().join('/')}</td>
       ${saldoCel(saldos[e.id])}
       <td>${e.ativo
@@ -415,6 +419,7 @@ function abrirPessoa(p){
   $('f-nome').value = p?.nome ?? '';
   $('f-cpf').value  = p?.cpf ?? '';
   $('f-cargo').value = p?.cargo ?? '';
+  $('f-email').value = p?.email ?? '';
   $('f-admissao').value = p?.admissao ?? new Date().toISOString().slice(0,10);
   $('f-jornada').innerHTML = JORNADAS.map(j => `<option value="${j.id}">${esc(j.nome)}</option>`).join('');
   $('dlg-pessoa').showModal();
@@ -430,6 +435,7 @@ $('dlg-pessoa-salvar').onclick = async () => {
   const dados = {
     nome: $('f-nome').value.trim().toUpperCase(),
     cpf, cargo: $('f-cargo').value.trim() || null,
+    email: $('f-email').value.trim().toLowerCase() || null,
     admissao: $('f-admissao').value,
   };
 
@@ -734,8 +740,21 @@ async function carregarRelatorios(){
   const { data:{ session } } = await sb.auth.getSession();
   if (!session){ location.href = './entrar.html'; return; }
 
-  const { data: eu } = await P.from('empregados').select('id,nome').maybeSingle();
+  const { data: eu } = await P.from('empregados')
+    .select('id,nome').eq('auth_user_id', session.user.id).maybeSingle();
   EU = eu;
+
+  // Sem cadastro próprio não dá para assinar ajuste: criado_por ficaria nulo.
+  if (!EU) {
+    const av = document.createElement('div');
+    av.className = 'aviso';
+    av.style.margin = '14px 22px 0';
+    av.innerHTML = 'Seu login ainda não está ligado a um cadastro de pessoa. '
+      + 'Cadastre-se na aba Equipe usando <strong>' + esc(session.user.email)
+      + '</strong> como e-mail de acesso — o vínculo acontece sozinho. '
+      + 'Até lá você consegue consultar, mas não registrar ajustes.';
+    document.querySelector('main').prepend(av);
+  }
 
   const { data: j } = await P.from('jornadas').select('id,nome').eq('ativa', true);
   JORNADAS = j ?? [];

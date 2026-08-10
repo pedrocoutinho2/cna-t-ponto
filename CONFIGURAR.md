@@ -76,6 +76,25 @@ Se a unidade não abre sábado, apague a linha do `dia_semana = 6`.
 
 ---
 
+## 6. Criar a conta de login
+
+Painel → **Authentication → Users → Add user** → e-mail `taquara@cna.com.br`,
+uma senha, e marque **Auto Confirm User**.
+
+O papel de coordenação já está armado: a migration 007 instalou um gatilho
+que aplica `papel: coordenacao` no momento em que a conta nasce, e amarra
+o login ao cadastro de pessoa pelo e-mail. Você não precisa rodar SQL.
+
+Para o resto da equipe, o caminho é o mesmo em qualquer ordem: cadastre a
+pessoa na aba Equipe com o e-mail de acesso, crie a conta no Authentication,
+e o vínculo acontece sozinho. Se as duas pontas já existirem e não tiverem
+se encontrado, rode `select ponto.sincronizar_acessos();`.
+
+A coluna **Acesso** na aba Equipe mostra em que pé está cada pessoa:
+vinculado, aguardando primeiro login, ou sem e-mail.
+
+---
+
 ## Depois disso
 
 Publicar o `pwa/` no GitHub Pages e fazer o deploy das quatro Edge
