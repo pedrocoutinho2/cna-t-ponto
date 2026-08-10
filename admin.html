@@ -73,10 +73,10 @@ dialog .nota{margin-top:14px}
     </label>
     <button class="acao" id="btn-novo" style="margin-left:auto">Cadastrar pessoa</button>
   </div>
-  <table>
+  <table class="responsiva">
     <caption>Equipe cadastrada</caption>
     <thead><tr>
-      <th>Nome</th><th>Cargo</th><th>E-mail</th><th>Acesso</th>
+      <th>Nome</th><th>Turno</th><th>E-mail</th><th>Acesso</th>
       <th>Admissão</th><th class="n">Banco</th><th>Situação</th><th></th>
     </tr></thead>
     <tbody id="t-equipe"></tbody>
@@ -88,11 +88,11 @@ dialog .nota{margin-top:14px}
   <div class="filtros">
     <label class="campo"><span>Pessoa</span><select id="e-pessoa"></select></label>
     <label class="campo"><span>Mês</span><input type="month" id="e-mes"></label>
-    <button class="acao leve" id="btn-fechar-mes">Fechar mês no banco</button>
-    <button class="acao leve" id="btn-csv">Exportar CSV</button>
+    <button class="leve" id="btn-fechar-mes">Fechar mês no banco</button>
+    <button class="leve" id="btn-csv">Exportar CSV</button>
   </div>
   <div id="e-indicadores" class="indicadores"></div>
-  <table>
+  <table class="responsiva">
     <caption id="e-titulo">Espelho de ponto</caption>
     <thead><tr>
       <th>Dia</th><th>Entrada</th><th>Saída almoço</th><th>Volta</th><th>Saída</th>
@@ -111,13 +111,13 @@ dialog .nota{margin-top:14px}
     <label class="campo"><span>De</span><input type="date" id="b-ini"></label>
     <label class="campo"><span>Até</span><input type="date" id="b-fim"></label>
   </div>
-  <table id="tb-banco">
+  <table class="responsiva" id="tb-banco">
     <caption>Saldo por pessoa</caption>
     <thead><tr><th>Nome</th><th class="n">Saldo</th><th>Situação</th><th class="n">Prazo</th></tr></thead>
     <tbody id="t-banco"></tbody>
   </table>
   <div style="height:18px"></div>
-  <table id="tb-extrato" hidden>
+  <table class="responsiva" id="tb-extrato" hidden>
     <caption>Extrato</caption>
     <thead><tr><th>Data</th><th>Origem</th><th class="n">Lançamento</th><th class="n">Acumulado</th><th>Observação</th></tr></thead>
     <tbody id="t-extrato"></tbody>
@@ -130,13 +130,13 @@ dialog .nota{margin-top:14px}
     <label class="campo"><span>De</span><input type="date" id="pd-ini"></label>
     <label class="campo"><span>Até</span><input type="date" id="pd-fim"></label>
   </div>
-  <table>
+  <table class="responsiva">
     <caption>Dias em aberto — marcação faltando ou sobrando</caption>
     <thead><tr><th>Pessoa</th><th>Data</th><th>Situação</th><th>Justificativa</th><th></th></tr></thead>
     <tbody id="t-aberto"></tbody>
   </table>
   <div style="height:18px"></div>
-  <table>
+  <table class="responsiva">
     <caption>Marcações sinalizadas — fora da cerca, rede ou biometria</caption>
     <thead><tr><th>Pessoa</th><th>Quando</th><th>Local</th><th>Identidade</th><th class="n">Distância</th><th></th></tr></thead>
     <tbody id="t-sinalizadas"></tbody>
@@ -149,7 +149,7 @@ dialog .nota{margin-top:14px}
     <label class="campo"><span>De</span><input type="date" id="r-ini"></label>
     <label class="campo"><span>Até</span><input type="date" id="r-fim"></label>
   </div>
-  <table>
+  <table class="responsiva">
     <caption>Resumo do período</caption>
     <thead><tr>
       <th>Pessoa</th><th class="n">Dias prev.</th><th class="n">Trabalhados</th>
@@ -172,7 +172,7 @@ dialog .nota{margin-top:14px}
   <h2 class="secao">
     Faltas e ausências
   </h2>
-  <table>
+  <table class="responsiva">
     <thead><tr><th>Pessoa</th><th>Data</th><th>Dia</th><th>Situação</th><th>Justificativa</th></tr></thead>
     <tbody id="t-faltas"></tbody>
   </table>
@@ -189,10 +189,20 @@ dialog .nota{margin-top:14px}
     <label class="campo"><span>E-mail de acesso</span><input type="text" id="f-email" inputmode="email"></label>
     <label class="campo"><span>Cargo</span><input type="text" id="f-cargo"></label>
     <label class="campo"><span>Admissão</span><input type="date" id="f-admissao"></label>
-    <label class="campo"><span>Jornada</span><select id="f-jornada"></select></label>
+    <label class="campo"><span>Turno</span><select id="f-jornada"></select></label>
+    <label class="campo"><span>Sábado (07:30 às 14:00, quinzenal)</span>
+      <select id="f-sabado">
+        <option value="">Não trabalha aos sábados</option>
+        <option value="A">Escala A — semanas pares</option>
+        <option value="B">Escala B — semanas ímpares</option>
+      </select>
+    </label>
+    <p class="nota">As duas escalas se alternam: quem é A trabalha num sábado,
+    quem é B no seguinte. Distribua a equipe entre as duas para ter sempre
+    gente na unidade.</p>
   </div>
   <div class="rodape">
-    <button class="acao leve" id="dlg-pessoa-cancelar">Cancelar</button>
+    <button class="leve" id="dlg-pessoa-cancelar">Cancelar</button>
     <button class="acao" id="dlg-pessoa-salvar">Salvar</button>
   </div>
 </dialog>
@@ -223,7 +233,7 @@ dialog .nota{margin-top:14px}
     </p>
   </div>
   <div class="rodape">
-    <button class="acao leve" id="dlg-ajuste-cancelar">Cancelar</button>
+    <button class="leve" id="dlg-ajuste-cancelar">Cancelar</button>
     <button class="acao" id="dlg-ajuste-salvar">Registrar ajuste</button>
   </div>
 </dialog>
@@ -236,7 +246,7 @@ const sb = createClient(CFG.url, CFG.anon);
 const P  = sb.schema('ponto');
 const $  = (id) => document.getElementById(id);
 
-let EU = null, EQUIPE = [], JORNADAS = [], editando = null, ajustando = null;
+let EU = null, EQUIPE = [], JORNADAS = [], TURNOS = {}, editando = null, ajustando = null;
 
 /* ---------- formatação ---------- */
 const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -247,10 +257,11 @@ function hm(min){
   const a = Math.abs(min);
   return `${s}${Math.floor(a/60)}:${String(a%60).padStart(2,'0')}`;
 }
-function saldoCel(min){
-  if (min === null || min === undefined) return '<td class="n mudo">—</td>';
+function saldoCel(min, rotulo = 'Saldo'){
+  const r = ` data-rotulo="${rotulo}"`;
+  if (min === null || min === undefined) return `<td class="n mudo"${r}>—</td>`;
   const c = min > 0 ? 'pos' : min < 0 ? 'neg' : '';
-  return `<td class="n ${c}">${min > 0 ? '+' : ''}${hm(min)}</td>`;
+  return `<td class="n ${c}"${r}>${min > 0 ? '+' : ''}${hm(min)}</td>`;
 }
 function hora(iso){
   if (!iso) return '<span class="mudo">—</span>';
@@ -276,8 +287,13 @@ document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
 /* ================= EQUIPE ================= */
 async function carregarEquipe(){
   const { data } = await P.from('empregados')
-    .select('id,nome,cpf,cargo,email,auth_user_id,admissao,demissao,ativo').order('nome');
+    .select('id,nome,cpf,cargo,email,auth_user_id,admissao,demissao,ativo,escala_sabado')
+    .order('nome');
   EQUIPE = data ?? [];
+
+  const { data: vinc } = await P.from('empregado_jornada')
+    .select('empregado_id, jornadas(nome)');
+  TURNOS = Object.fromEntries((vinc ?? []).map(v => [v.empregado_id, v.jornadas?.nome]));
 
   const saldos = Object.fromEntries(await Promise.all(EQUIPE.map(async e => {
     const { data: s } = await P.rpc('saldo_banco', { p_emp: e.id });
@@ -292,21 +308,22 @@ async function carregarEquipe(){
 
   $('t-equipe').innerHTML = lista.length ? lista.map(e => `
     <tr>
-      <td><strong>${esc(e.nome)}</strong></td>
-      <td>${esc(e.cargo) || '<span class="mudo">—</span>'}</td>
-      <td class="mudo" style="font-size:12px">${esc(e.email) || '—'}</td>
-      <td>${e.auth_user_id
+      <td class="destaque" data-rotulo=""><strong>${esc(e.nome)}</strong></td>
+      <td data-rotulo="Turno">${TURNOS[e.id] ? esc(TURNOS[e.id]) : '<span class="mudo">sem turno</span>'}
+        ${e.escala_sabado ? `<div class="mudo" style="font-size:12px">sáb. escala ${e.escala_sabado}</div>` : ''}</td>
+      <td class="mudo" data-rotulo="E-mail" style="font-size:12.5px">${esc(e.email) || '—'}</td>
+      <td data-rotulo="Acesso">${e.auth_user_id
         ? '<span class="tag ok">vinculado</span>'
         : e.email ? '<span class="tag neutra">aguardando 1º login</span>'
                   : '<span class="tag alerta">sem e-mail</span>'}</td>
-      <td class="hora">${e.admissao.split('-').reverse().join('/')}</td>
-      ${saldoCel(saldos[e.id])}
-      <td>${e.ativo
+      <td class="hora" data-rotulo="Admissão">${e.admissao.split('-').reverse().join('/')}</td>
+      ${saldoCel(saldos[e.id], 'Banco')}
+      <td data-rotulo="Situação">${e.ativo
         ? '<span class="tag ok">ativo</span>'
         : `<span class="tag neutra">desligado ${e.demissao ? e.demissao.split('-').reverse().slice(0,2).join('/') : ''}</span>`}</td>
-      <td style="text-align:right;white-space:nowrap">
-        <button class="acao leve" data-editar="${e.id}">Editar</button>
-        ${e.ativo ? `<button class="acao leve" data-desligar="${e.id}">Desligar</button>` : ''}
+      <td data-rotulo="" style="text-align:right;white-space:nowrap">
+        <button class="leve" data-editar="${e.id}">Editar</button>
+        ${e.ativo ? `<button class="leve" data-desligar="${e.id}">Desligar</button>` : ''}
       </td>
     </tr>`).join('')
     : '<tr><td colspan="8" class="vazio">Nenhuma pessoa encontrada com esses filtros.</td></tr>';
@@ -350,6 +367,11 @@ function abrirPessoa(p){
   $('f-email').value = p?.email ?? '';
   $('f-admissao').value = p?.admissao ?? new Date().toISOString().slice(0,10);
   $('f-jornada').innerHTML = JORNADAS.map(j => `<option value="${j.id}">${esc(j.nome)}</option>`).join('');
+  $('f-sabado').value = p?.escala_sabado ?? '';
+  if (p) {
+    P.from('empregado_jornada').select('jornada_id').eq('empregado_id', p.id)
+      .maybeSingle().then(({ data }) => { if (data) $('f-jornada').value = data.jornada_id; });
+  }
   $('dlg-pessoa').showModal();
 }
 $('btn-novo').onclick = () => abrirPessoa(null);
@@ -365,10 +387,24 @@ $('dlg-pessoa-salvar').onclick = async () => {
     cpf, cargo: $('f-cargo').value.trim() || null,
     email: $('f-email').value.trim().toLowerCase() || null,
     admissao: $('f-admissao').value,
+    escala_sabado: $('f-sabado').value || null,
   };
 
   if (editando){
     await P.from('empregados').update(dados).eq('id', editando.id);
+    // Trocar de turno não pode reescrever o passado: encerra a vigência
+    // anterior hoje e abre uma nova. O espelho dos meses fechados continua
+    // apurado contra o horário que valia na época.
+    const { data: atual } = await P.from('empregado_jornada')
+      .select('id, jornada_id').eq('empregado_id', editando.id).maybeSingle();
+    if (atual && atual.jornada_id !== $('f-jornada').value){
+      const hoje = new Date().toISOString().slice(0,10);
+      await P.from('empregado_jornada').delete().eq('id', atual.id);
+      await P.from('empregado_jornada').insert({
+        empregado_id: editando.id, jornada_id: $('f-jornada').value,
+        vigencia: `[${hoje},)`,
+      });
+    }
   } else {
     const { data: rep } = await P.from('rep').select('id').limit(1).single();
     const { data: novo, error } = await P.from('empregados')
@@ -422,17 +458,17 @@ async function carregarEspelho(){
     const notas = (l.inconsistencias ?? []).map(i => `<div class="mudo" style="font-size:12px;margin-top:4px">${esc(i)}</div>`).join('');
 
     return `<tr class="${fds?'fds':''} ${problema?'problema':''}">
-      <td class="hora">${dia(l.data)} <span class="mudo">${DOW[l.dia_semana]}</span></td>
-      <td class="hora">${hora(l.entrada)}</td>
-      <td class="hora">${hora(l.saida_almoco)}</td>
-      <td class="hora">${hora(l.volta_almoco)}</td>
-      <td class="hora">${hora(l.saida)}</td>
-      <td class="n">${l.trabalhado_min === null ? '—' : hm(l.trabalhado_min)}</td>
-      <td class="n ${l.intervalo_min !== null && l.carga_prev_min > 360 && l.intervalo_min < 60 ? 'neg' : ''}">${l.intervalo_min === null ? '—' : hm(l.intervalo_min)}</td>
-      <td class="n ${l.atraso_min ? 'neg' : ''}">${l.atraso_min ? hm(l.atraso_min) : '—'}</td>
+      <td class="destaque" data-rotulo="">${dia(l.data)} <span class="mudo">${DOW[l.dia_semana]}</span></td>
+      <td class="hora" data-rotulo="Entrada">${hora(l.entrada)}</td>
+      <td class="hora" data-rotulo="Saída almoço">${hora(l.saida_almoco)}</td>
+      <td class="hora" data-rotulo="Volta">${hora(l.volta_almoco)}</td>
+      <td class="hora" data-rotulo="Saída">${hora(l.saida)}</td>
+      <td class="n" data-rotulo="Trabalhado">${l.trabalhado_min === null ? '—' : hm(l.trabalhado_min)}</td>
+      <td data-rotulo="Intervalo" class="n ${l.intervalo_min !== null && l.carga_prev_min > 360 && l.intervalo_min < 60 ? 'neg' : ''}">${l.intervalo_min === null ? '—' : hm(l.intervalo_min)}</td>
+      <td data-rotulo="Atraso" class="n ${l.atraso_min ? 'neg' : ''}">${l.atraso_min ? hm(l.atraso_min) : '—'}</td>
       ${saldoCel(l.saldo_min)}
-      <td>${situacao}${notas}</td>
-      <td style="text-align:right"><button class="acao leve" data-ajustar="${l.data}">Ajustar</button></td>
+      <td data-rotulo="Situação">${situacao}${notas}</td>
+      <td data-rotulo="" style="text-align:right"><button class="leve" data-ajustar="${l.data}">Ajustar</button></td>
     </tr>`;
   }).join('');
 }
@@ -534,7 +570,7 @@ async function carregarBanco(){
   $('t-banco').innerHTML = linhas.map(({e,s,restam}) => {
     const estouro = cfg && (s > cfg.teto_positivo_min || s < cfg.teto_negativo_min);
     return `<tr>
-      <td><button class="acao leve" data-extrato="${e.id}">${esc(e.nome)}</button></td>
+      <td><button class="leve" data-extrato="${e.id}">${esc(e.nome)}</button></td>
       ${saldoCel(s)}
       <td>${estouro ? '<span class="tag alerta">fora do teto</span>'
            : s === 0 ? '<span class="tag neutra">zerado</span>'
@@ -568,7 +604,7 @@ async function carregarPendencias(){
     <td class="hora">${dia(f.data)} <span class="mudo">${DOW[f.dia_semana]}</span></td>
     <td><span class="tag ${f.situacao === 'ausência abonada' ? 'neutra' : 'alerta'}">${esc(f.situacao)}</span></td>
     <td class="mudo">${esc(f.justificativa) || '—'}</td>
-    <td style="text-align:right"><button class="acao leve" data-ir="${f.empregado_id}|${f.data}">Abrir espelho</button></td>
+    <td style="text-align:right"><button class="leve" data-ir="${f.empregado_id}|${f.data}">Abrir espelho</button></td>
   </tr>`).join('')
     : '<tr><td colspan="5" class="vazio">Nada em aberto no período. Bom sinal.</td></tr>';
 
@@ -583,8 +619,8 @@ async function carregarPendencias(){
         : '<span class="tag alerta">não confirmada</span>'}</td>
     <td class="n">${s.distancia_cerca_m ? Math.round(s.distancia_cerca_m) + ' m' : '—'}</td>
     <td style="text-align:right">
-      <button class="acao leve" data-aceitar="${s.arp_id}">Aceitar</button>
-      <button class="acao leve" data-contestar="${s.arp_id}">Contestar</button>
+      <button class="leve" data-aceitar="${s.arp_id}">Aceitar</button>
+      <button class="leve" data-contestar="${s.arp_id}">Contestar</button>
     </td>
   </tr>`).join('')
     : '<tr><td colspan="6" class="vazio">Nenhuma marcação sinalizada.</td></tr>';
@@ -619,13 +655,13 @@ async function carregarRelatorios(){
 
   const { data: resumo } = await P.rpc('resumo_equipe', { p_ini:ini, p_fim:fim });
   $('t-resumo').innerHTML = (resumo ?? []).map(r => `<tr>
-    <td><strong>${esc(r.nome)}</strong>${r.cargo ? `<div class="mudo" style="font-size:12.5px">${esc(r.cargo)}</div>` : ''}</td>
-    <td class="n">${r.dias_previstos}</td>
-    <td class="n">${r.dias_trabalhados}</td>
-    <td class="n ${r.faltas ? 'neg' : ''}">${r.faltas}</td>
+    <td class="destaque" data-rotulo=""><strong>${esc(r.nome)}</strong>${r.cargo ? `<div class="mudo" style="font-size:12.5px">${esc(r.cargo)}</div>` : ''}</td>
+    <td class="n" data-rotulo="Dias previstos">${r.dias_previstos}</td>
+    <td class="n" data-rotulo="Trabalhados">${r.dias_trabalhados}</td>
+    <td class="n ${r.faltas ? 'neg' : ''}" data-rotulo="Faltas">${r.faltas}</td>
     <td class="n ${r.qtd_atrasos ? 'neg' : ''}">${r.qtd_atrasos}</td>
-    <td class="n">${hm(r.atraso_total_min)}</td>
-    <td class="n">${hm(r.trabalhado_min)}</td>
+    <td class="n" data-rotulo="Min. atraso">${hm(r.atraso_total_min)}</td>
+    <td class="n" data-rotulo="Horas">${hm(r.trabalhado_min)}</td>
     ${saldoCel(r.saldo_periodo_min)}
     <td class="n ${r.intervalo_irregular ? 'neg' : ''}">${r.intervalo_irregular}</td>
     <td class="n ${r.dias_em_aberto ? 'neg' : ''}">${r.dias_em_aberto}</td>

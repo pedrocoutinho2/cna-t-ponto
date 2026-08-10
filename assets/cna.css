@@ -203,3 +203,78 @@ td.n,th.n{text-align:right}
 .ind .nota{font-size:12.5px; margin-top:4px; border:0; padding:0}
 
 @media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
+
+/* =====================================================================
+   MOBILE
+   O sistema é usado em pé, na recepção, com uma mão, em 10 segundos.
+   Tudo abaixo existe para esse cenário, não para a tela do notebook.
+   ===================================================================== */
+
+/* iOS dá zoom automático em qualquer campo com menos de 16px. O zoom
+   desalinha a página e a pessoa precisa fechar na mão. 16px resolve. */
+@media (max-width:860px){
+  input,select,textarea{font-size:16px; padding:13px 12px}
+
+  /* Alvo de toque de 44px é o mínimo da Apple e da WCAG 2.5.5.
+     Botão de 36px na recepção com a mão ocupada erra o alvo. */
+  button.acao,button.leve{min-height:48px; padding:13px 20px; font-size:15px}
+  nav.abas button, nav.abas a{min-height:44px; display:flex; align-items:center}
+
+  header.topo{padding:11px 15px; gap:11px}
+  .marca img{height:26px}
+  .marca .unidade{padding-left:9px}
+  h1.titulo{font-size:15px}
+
+  main{padding:15px}
+  .filtros{gap:10px}
+  .filtros label.campo, .filtros input, .filtros select{width:100%; min-width:0}
+  .filtros button{width:100%}
+
+  /* Tabela vira lista de cartões. Rolagem horizontal em tabela de 10
+     colunas é a pior experiência possível num celular: a pessoa perde
+     a coluna de referência assim que arrasta. */
+  table.responsiva, table.responsiva thead, table.responsiva tbody,
+  table.responsiva tr, table.responsiva td{display:block; width:100%}
+  table.responsiva thead{display:none}
+  table.responsiva{border:0; background:none}
+  table.responsiva caption{border:0; padding:0 0 11px}
+  table.responsiva tr{
+    background:var(--branco); border:1px solid var(--linha);
+    border-radius:var(--raio); margin-bottom:11px; padding:6px 2px;
+  }
+  table.responsiva tbody tr:nth-child(even) td{background:transparent}
+  table.responsiva td{
+    border:0; padding:8px 14px; display:flex; justify-content:space-between;
+    align-items:baseline; gap:14px; text-align:right;
+  }
+  table.responsiva td::before{
+    content:attr(data-rotulo); font-family:var(--display); font-size:10px;
+    font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--cinza); text-align:left; flex:0 0 auto;
+  }
+  table.responsiva td:empty{display:none}
+  table.responsiva td[data-rotulo=""]{justify-content:flex-end}
+  table.responsiva td.destaque{
+    background:var(--superficie); border-bottom:1px solid var(--linha);
+    font-family:var(--display); font-weight:600; font-size:15px;
+  }
+
+  /* Diálogo vira folha inferior: o polegar alcança, e o teclado não
+     empurra o conteúdo para fora da tela. */
+  dialog{
+    max-width:none; width:100%; margin:auto 0 0; border-radius:16px 16px 0 0;
+    max-height:92dvh; overflow-y:auto;
+  }
+  dialog .rodape{
+    position:sticky; bottom:0; background:var(--branco);
+    border-top:1px solid var(--linha); padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+  }
+  dialog .rodape button{flex:1}
+  .indicadores{grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:9px}
+  .ind{padding:13px} .ind dd{font-size:24px}
+}
+
+@media (max-width:420px){
+  .marca .unidade{display:none}
+  .indicadores{grid-template-columns:1fr 1fr}
+}

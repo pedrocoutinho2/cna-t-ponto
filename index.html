@@ -11,12 +11,14 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <style>
 
-html,body{height:100%}
-body{display:flex; justify-content:center; align-items:stretch; overflow:hidden;
-  padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px)}
+/* 100dvh acompanha a barra de endereco do celular; 100vh nao, e o botao
+   de bater ponto ficava escondido atras dela. min-height deixa rolar
+   quando o teclado abre ou a lista cresce. */
+body{display:flex; justify-content:center; align-items:stretch;
+  min-height:100dvh; padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px)}
 .cartao{width:100%; max-width:440px; margin:14px 0; display:flex; flex-direction:column;
   background:var(--branco); border:1px solid var(--linha); border-radius:12px;
-  box-shadow:var(--sombra); overflow:hidden}
+  box-shadow:var(--sombra)}
 .topo{padding:20px 22px 0; display:flex; justify-content:space-between; align-items:center; gap:12px}
 .pessoa{font-family:var(--display); font-size:12.5px; font-weight:500; color:var(--cinza); text-align:right}
 
@@ -25,11 +27,17 @@ body{display:flex; justify-content:center; align-items:stretch; overflow:hidden;
   letter-spacing:-.05em; line-height:.9; color:var(--azul); font-variant-numeric:tabular-nums}
 .hora .seg{font-size:.4em; font-weight:500; color:var(--cinza); letter-spacing:-.01em}
 .data{font-size:13px; color:var(--cinza); margin-top:11px}
+@media (max-height:680px){
+  .hora{font-size:clamp(40px,13vw,54px)}
+  .relogio{padding:14px 22px 2px}
+  .topo{padding:14px 22px 0}
+}
 
 .janela{margin:18px 22px 0; position:relative; border-radius:8px; overflow:hidden;
   background:var(--tinta); aspect-ratio:4/3; border:1px solid var(--linha)}
 .janela video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
 .janela.oculta{display:none}
+.janela{max-height:46dvh}
 .mira{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
 .mira svg{width:62%; max-width:190px; opacity:.6}
 .instrucao{position:absolute; left:0; right:0; bottom:0; padding:15px 16px;
@@ -51,7 +59,9 @@ body{display:flex; justify-content:center; align-items:stretch; overflow:hidden;
 .sinal.rev{background:var(--rosa); color:var(--vermelho-escuro)}
 .vazio{padding:24px 0; color:var(--cinza); font-size:14px; line-height:1.5}
 
-.acao{padding:16px 22px 24px}
+.acao{padding:16px 22px 24px; position:sticky; bottom:0; background:var(--branco);
+  border-top:1px solid var(--linha); border-radius:0 0 12px 12px; z-index:2}
+.pauta{padding-bottom:8px}
 button.bater{width:100%; border:0; border-radius:8px; cursor:pointer;
   background:var(--vermelho); color:var(--branco); font-family:var(--display);
   font-size:17px; font-weight:600; padding:19px; transition:background .15s, transform .1s}
@@ -340,6 +350,7 @@ $('bater').addEventListener('click', async () => {
     aviso.textContent = 'Abrindo a câmera…';
     btn.textContent = 'Aguarde';
     await abrirCamera();
+    aviso.textContent = 'Siga as instruções na tela.';
 
     const rd = await fetch(`${CFG.supabaseUrl}/functions/v1/desafio-liveness`, { method:'POST', headers:auth });
     if (!rd.ok) throw new Error('Não foi possível abrir o desafio. Tente de novo.');

@@ -25,6 +25,8 @@ h1.titulo{font-size:16px; font-weight:600}
 .passo .corpo{padding:20px}
 .passo[data-travado] .corpo{opacity:.42; pointer-events:none}
 .passo .corpo > button{margin-right:9px}
+@media (max-width:640px){.passo .corpo > button{width:100%; margin:0 0 9px}
+ .camera{max-width:none} .amostra{width:calc(33.33% - 7px); height:70px}}
 
 .termo{max-height:300px; overflow:auto; border:1px solid var(--linha); background:var(--superficie);
   padding:20px; font-size:14px; line-height:1.65; white-space:pre-wrap; border-radius:6px}
@@ -138,7 +140,7 @@ h1.titulo{font-size:16px; font-weight:600}
 <section class="passo">
   <h2><span class="num">4</span> Situação da equipe</h2>
   <div class="corpo">
-    <table>
+    <table class="responsiva">
       <thead><tr>
         <th>Pessoa</th><th>Login</th><th>Consentimento</th>
         <th>Rosto</th><th>Aparelho</th><th>Pronto</th>
@@ -183,24 +185,55 @@ async function carregarPessoas(){
   const { data } = await P.rpc('situacao_cadastro');
   const lista = data ?? [];
 
+  // Preservar a seleção é o que corrige o "invalid input syntax for uuid":
+  // recarregar a lista zerava o select enquanto os passos seguiam destravados,
+  // e o próximo salvamento mandava id vazio para o banco.
+  const selecionado = $('pessoa').value;
   $('pessoa').innerHTML = '<option value="">— escolha —</option>' +
     lista.map(p => `<option value="${p.empregado_id}">${esc(p.nome)}${p.pronto ? ' (já cadastrado)' : ''}</option>`).join('');
+  if (selecionado && lista.some(p => p.empregado_id === selecionado)) {
+    $('pessoa').value = selecionado;
+  } else if (selecionado) {
+    travarTudo();
+  }
 
   $('t-situacao').innerHTML = lista.length ? lista.map(p => `<tr>
-    <td>${esc(p.nome)}</td>
-    <td>${p.tem_login ? '<span class="tag ok">ok</span>' : '<span class="tag falta">falta</span>'}</td>
-    <td>${p.consentiu ? '<span class="tag ok">aceito</span>' : '<span class="tag falta">falta</span>'}</td>
-    <td>${p.amostras_faciais >= 3
+    <td class="destaque" data-rotulo="">${esc(p.nome)}</td>
+    <td data-rotulo="Login">${p.tem_login ? '<span class="tag ok">ok</span>' : '<span class="tag falta">falta</span>'}</td>
+    <td data-rotulo="Consentimento">${p.consentiu ? '<span class="tag ok">aceito</span>' : '<span class="tag falta">falta</span>'}</td>
+    <td data-rotulo="Rosto">${p.amostras_faciais >= 3
         ? `<span class="tag ok">${p.amostras_faciais} amostras</span>`
         : `<span class="tag falta">${p.amostras_faciais} de 3</span>`}</td>
-    <td>${p.aparelhos ? `<span class="tag ok">${p.aparelhos}</span>` : '<span class="tag neutra">aguardando</span>'}</td>
-    <td>${p.pronto ? '<span class="tag ok">sim</span>' : '<span class="tag falta">não</span>'}</td>
+    <td data-rotulo="Aparelho">${p.aparelhos ? `<span class="tag ok">${p.aparelhos}</span>` : '<span class="tag neutra">aguardando</span>'}</td>
+    <td data-rotulo="Pronto">${p.pronto ? '<span class="tag ok">sim</span>' : '<span class="tag falta">não</span>'}</td>
   </tr>`).join('')
     : '<tr><td colspan="6" class="vazio" style="text-align:center">Nenhuma pessoa cadastrada ainda. Cadastre na aba Equipe da administração.</td></tr>';
 }
 
+function travarTudo(){
+  $('pessoa').value = '';
+  $('p2').setAttribute('data-travado','');
+  $('p3').setAttribute('data-travado','');
+  ['p1','p2','p3'].forEach(id => $(id).classList.remove('feito','ativo'));
+  $('p1').classList.add('ativo');
+  $('situacao').innerHTML = '';
+  descritores = []; pintarAmostras();
+}
+
+// Cinto de segurança: nenhuma escrita sai sem pessoa escolhida.
+function pessoaEscolhida(){
+  const id = $('pessoa').value;
+  if (!id){
+    travarTudo();
+    alert('Escolha a pessoa no passo 1 antes de continuar.');
+    return null;
+  }
+  return id;
+}
+
 $('pessoa').onchange = async () => {
   const id = $('pessoa').value;
+  checarAceite();
   descritores = []; pintarAmostras();
   $('p2').toggleAttribute('data-travado', !id);
   $('p3').setAttribute('data-travado', '');
@@ -226,17 +259,20 @@ $('pessoa').onchange = async () => {
 
 /* ---------- passo 2 ---------- */
 function checarAceite(){
-  $('btn-consentir').disabled =
-    !($('aceito').checked && $('nome-aceite').value.trim().length >= 5);
+  $('btn-consentir').disabled = !(
+    $('pessoa').value &&
+    $('aceito').checked &&
+    $('nome-aceite').value.trim().length >= 5);
 }
 $('aceito').onchange = checarAceite;
 $('nome-aceite').oninput = checarAceite;
 
 $('btn-consentir').onclick = async () => {
+  const emp = pessoaEscolhida(); if (!emp) return;
   const btn = $('btn-consentir');
   btn.disabled = true;
   const { error } = await P.from('consentimentos').insert({
-    empregado_id: $('pessoa').value,
+    empregado_id: emp,
     versao: TERMO.versao,
     aceito: true,
     aceito_por_nome: $('nome-aceite').value.trim().toUpperCase(),
@@ -329,11 +365,12 @@ $('btn-capturar').onclick = async () => {
 const distancia = (a, b) => Math.hypot(...a.map((v, i) => v - b[i]));
 
 $('btn-salvar').onclick = async () => {
+  const emp = pessoaEscolhida(); if (!emp) return;
   const btn = $('btn-salvar');
   btn.disabled = true; btn.textContent = 'Salvando…';
 
   const linhas = descritores.map((d) => ({
-    empregado_id: $('pessoa').value,
+    empregado_id: emp,
     descritor: `[${d.join(',')}]`,
     consentimento_em: new Date().toISOString(),
     consentimento_texto_versao: TERMO.versao,
@@ -355,9 +392,9 @@ $('btn-salvar').onclick = async () => {
   $('r3').className = 'recado bom';
   $('r3').textContent =
     'Cadastro salvo. Falta a pessoa registrar o celular dela na tela de bater ponto.';
-  descritores = []; pintarAmostras();
   btn.textContent = 'Salvar cadastro';
-  carregarPessoas();
+  await carregarPessoas();
+  travarTudo();
 };
 
 /* ---------- boot ---------- */
