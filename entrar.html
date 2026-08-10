@@ -3,87 +3,46 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#E8E2D4">
+<meta name="theme-color" content="#FFFFFF">
 <title>Entrar · Ponto CNA Taquara</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/cna.css">
 <style>
-:root{
-  --papel:#E8E2D4; --papel-2:#F3EEE3; --tinta:#171B24; --fraca:#6B6F78;
-  --carimbo:#1E6B57; --alerta:#A8431C; --linha:#C6BCA6; --perfuro:#D6CEBB;
-  --sans:'Instrument Sans',system-ui,sans-serif; --mono:'Azeret Mono',ui-monospace,monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
 html,body{height:100%}
-body{
-  background:var(--papel); color:var(--tinta); font-family:var(--sans);
-  display:grid; place-items:center; padding:20px;
-}
-.cartao{
-  width:100%; max-width:370px; background:var(--papel-2);
-  border:1px solid var(--linha); border-radius:3px; position:relative;
-  padding:38px 28px 30px; overflow:hidden;
-  box-shadow:0 1px 0 rgba(23,27,36,.06), 0 18px 40px -28px rgba(23,27,36,.5);
-}
-.cartao::before,.cartao::after{
-  content:''; position:absolute; left:0; right:0; height:14px;
-  background-image:radial-gradient(circle at 7px 7px, var(--perfuro) 3px, transparent 3.4px);
-  background-size:19px 14px; pointer-events:none;
-}
-.cartao::before{top:0} .cartao::after{bottom:0; transform:rotate(180deg)}
+body{display:grid; place-items:center; padding:22px; background:var(--superficie)}
+.painel{width:100%; max-width:390px; background:var(--branco);
+  border:1px solid var(--linha); border-radius:12px; box-shadow:var(--sombra);
+  padding:34px 30px 28px}
+.painel .marca{margin-bottom:26px}
+h1{font-size:29px; font-weight:600; margin:0 0 5px}
+.sub{font-size:14.5px; color:var(--cinza); line-height:1.5; margin-bottom:26px}
+button.acao{width:100%; margin-top:10px; padding:14px}
+.recado{margin-top:15px; font-size:13.5px; line-height:1.5; color:var(--cinza); min-height:1.4em}
+.recado.erro{color:var(--vermelho-escuro)}
+.rodape{margin-top:24px; padding-top:17px; border-top:1px solid var(--linha);
+  font-size:12.5px; color:var(--cinza); line-height:1.55}
 
-.marca{font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--fraca)}
-h1{font-size:26px; font-weight:600; letter-spacing:-.02em; margin:9px 0 4px}
-.sub{font-size:13.5px; color:var(--fraca); line-height:1.5; margin-bottom:26px}
-
-label{display:block; margin-bottom:15px}
-label span{
-  display:block; font-size:9.5px; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--fraca); margin-bottom:5px;
-}
-input{
-  width:100%; font-family:var(--mono); font-size:15px; padding:12px 12px;
-  border:1px solid var(--linha); background:var(--papel); color:var(--tinta);
-  border-radius:2px;
-}
-input:focus{outline:2px solid var(--carimbo); outline-offset:1px; border-color:transparent}
-
-button{
-  width:100%; border:0; border-radius:2px; cursor:pointer; margin-top:8px;
-  background:var(--tinta); color:var(--papel-2); font-family:var(--sans);
-  font-size:15px; font-weight:600; padding:15px; transition:transform .12s ease;
-}
-button:active{transform:scale(.985)}
-button:disabled{background:var(--fraca); cursor:default}
-
-.recado{
-  margin-top:16px; font-size:12.5px; line-height:1.5; color:var(--fraca);
-  min-height:1.4em;
-}
-.recado.erro{color:var(--alerta)}
-.rodape{
-  margin-top:24px; padding-top:16px; border-top:1px solid var(--linha);
-  font-size:11.5px; color:var(--fraca); line-height:1.55;
-}
 </style>
 </head>
 <body>
 
-<main class="cartao">
-  <p class="marca">CNA Taquara</p>
+<main class="painel">
+  <div class="marca"><img src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><span class="lockup"><b>CNA</b> <i>idiomas</i></span><span class="unidade">Taquara</span></div>
   <h1>Ponto</h1>
   <p class="sub">Entre com o e-mail que a coordenação cadastrou para você.</p>
 
-  <label>
+  <label class="campo">
     <span>E-mail</span>
     <input type="email" id="email" autocomplete="username" inputmode="email" autocapitalize="off">
   </label>
-  <label>
+  <label class="campo">
     <span>Senha</span>
     <input type="password" id="senha" autocomplete="current-password">
   </label>
 
-  <button id="entrar">Entrar</button>
+  <button class="acao" id="entrar">Entrar</button>
   <p class="recado" id="recado"></p>
 
   <p class="rodape">

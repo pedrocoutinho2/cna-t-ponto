@@ -5,6 +5,7 @@ const CACHE = 'ponto-cna-v1';
 const MODELOS = ['tiny_face_detector', 'face_landmark_68', 'face_recognition', 'face_expression'];
 const CASCO = [
   './index.html', './manifest.webmanifest',
+  './assets/cna.css', './assets/logo-cna.png',
   // manifesto e pesos: sem o .bin o face-api baixa 7 MB a cada marcação
   ...MODELOS.flatMap((m) => [
     `./models/${m}_model-weights_manifest.json`,

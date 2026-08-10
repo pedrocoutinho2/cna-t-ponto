@@ -1,0 +1,196 @@
+/* =====================================================================
+   cna.css — design system CNA Taquara aplicado ao sistema de ponto
+   Fonte: CNA-Taquara-Design-System.md v0.1
+
+   Três decisões que valem registro:
+
+   1. Sem mascotes. O design system os trata como anfitriões da marca em
+      material de treinamento e conteúdo. Aqui é ferramenta interna de RH:
+      o Ben sorrindo enquanto alguém registra o terceiro atraso da semana
+      seria constrangedor. Mesma regra já adotada nas telas de Financeiro.
+
+   2. Duas famílias, não três. O design system limita a duas por material.
+      Dados de hora pedem largura fixa, mas em vez de trazer uma monoespaçada
+      usamos Inter com `font-variant-numeric: tabular-nums` — os dígitos
+      alinham em coluna e a contagem de famílias fica respeitada.
+
+   3. Vermelho vivo só em título e bloco curto. Branco sobre #E6143C dá
+      4,64:1, suficiente para texto grande e negrito, insuficiente para
+      corpo. Texto longo é sempre ink sobre branco, ou branco sobre azul.
+   ===================================================================== */
+
+:root{
+  /* paleta oficial */
+  --vermelho:#E6143C;
+  --vermelho-escuro:#A30E2A;
+  --azul:#19408B;
+  --branco:#FFFFFF;
+  --tinta:#1A1A1A;
+  --cinza:#5A5A5A;
+  --linha:#E4E4E7;
+  --superficie:#F7F7F9;
+
+  /* pastéis de apoio */
+  --rosa:#FDECEF;
+  --azul-claro:#EAF0FA;
+  --amarelo:#FFC800;
+
+  --display:'Poppins',system-ui,sans-serif;
+  --corpo:'Inter',system-ui,sans-serif;
+
+  --raio:8px;
+  --sombra:0 1px 2px rgba(26,26,26,.04), 0 12px 32px -22px rgba(26,26,26,.35);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--superficie); color:var(--tinta);
+  font-family:var(--corpo); font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.display{font-family:var(--display); letter-spacing:-.01em}
+
+/* números com largura fixa: horas alinham em coluna */
+.num,.hora,td.n,th.n,time,.dado{font-variant-numeric:tabular-nums}
+
+/* ---------- marca ---------- */
+.marca{display:flex; align-items:center; gap:11px}
+.marca img{height:30px; width:auto; display:block}
+.marca .lockup{display:none; font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.02em}
+.marca .lockup b{color:var(--vermelho)} .marca .lockup i{color:var(--azul); font-style:normal; font-weight:600}
+.marca img[data-falhou]{display:none}
+.marca img[data-falhou] + .lockup{display:block}
+.marca .unidade{
+  font-family:var(--display); font-size:10.5px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--cinza);
+  padding-left:11px; border-left:1px solid var(--linha);
+}
+
+/* ---------- cabeçalho ---------- */
+header.topo{
+  background:var(--branco); border-bottom:1px solid var(--linha);
+  padding:13px 22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  position:sticky; top:0; z-index:10;
+}
+
+/* ---------- navegação por abas ---------- */
+nav.abas{display:flex; gap:3px; margin-left:auto; flex-wrap:wrap}
+nav.abas button, nav.abas a{
+  background:transparent; border:0; color:var(--cinza); cursor:pointer;
+  font-family:var(--display); font-size:13.5px; font-weight:500;
+  padding:8px 13px; border-radius:6px; text-decoration:none;
+  border-bottom:2px solid transparent; transition:color .15s, border-color .15s;
+}
+nav.abas button:hover, nav.abas a:hover{color:var(--tinta)}
+nav.abas button[aria-selected=true]{
+  color:var(--vermelho); border-bottom-color:var(--vermelho); font-weight:600;
+}
+nav.abas button:focus-visible, nav.abas a:focus-visible{
+  outline:2px solid var(--azul); outline-offset:2px;
+}
+
+/* ---------- superfícies ---------- */
+.cartao{
+  background:var(--branco); border:1px solid var(--linha);
+  border-radius:var(--raio); box-shadow:var(--sombra);
+}
+.rotulo{
+  font-family:var(--display); font-size:10px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--cinza);
+}
+
+/* ---------- formulários ---------- */
+label.campo{display:block; margin-bottom:14px}
+label.campo > span{
+  display:block; font-family:var(--display); font-size:10px; font-weight:600;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--cinza); margin-bottom:6px;
+}
+input,select,textarea{
+  width:100%; font-family:var(--corpo); font-size:15px; color:var(--tinta);
+  padding:11px 12px; border:1px solid var(--linha); background:var(--branco);
+  border-radius:6px; transition:border-color .15s, box-shadow .15s;
+}
+input:focus,select:focus,textarea:focus{
+  outline:0; border-color:var(--azul); box-shadow:0 0 0 3px var(--azul-claro);
+}
+textarea{min-height:74px; resize:vertical; line-height:1.5}
+
+/* ---------- botões ---------- */
+button.acao{
+  border:0; border-radius:6px; cursor:pointer;
+  background:var(--vermelho); color:var(--branco);
+  font-family:var(--display); font-size:15px; font-weight:600;
+  padding:12px 22px; transition:background .15s, transform .1s;
+}
+button.acao:hover{background:var(--vermelho-escuro)}
+button.acao:active{transform:scale(.985)}
+button.acao:disabled{background:var(--linha); color:var(--cinza); cursor:default}
+button.acao:focus-visible{outline:2px solid var(--azul); outline-offset:2px}
+
+button.leve{
+  background:var(--branco); color:var(--tinta); border:1px solid var(--linha);
+  border-radius:6px; cursor:pointer; font-family:var(--display);
+  font-size:14px; font-weight:500; padding:11px 18px;
+}
+button.leve:hover{border-color:var(--cinza)}
+button.azul{background:var(--azul)} button.azul:hover{background:#142F66}
+
+/* ---------- tabelas ---------- */
+table{
+  width:100%; border-collapse:collapse; background:var(--branco);
+  border:1px solid var(--linha); border-radius:var(--raio); overflow:hidden;
+}
+caption{
+  text-align:left; padding:15px 16px; font-family:var(--display);
+  font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--cinza); border-bottom:1px solid var(--linha); background:var(--branco);
+}
+thead th{
+  background:var(--azul); color:var(--branco);
+  font-family:var(--display); font-size:10.5px; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; text-align:left;
+  padding:10px 12px; white-space:nowrap;
+}
+td{padding:11px 12px; border-bottom:1px solid var(--linha); vertical-align:top; font-size:14px}
+tbody tr:nth-child(even) td{background:var(--superficie)}
+tbody tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right}
+.pos{color:var(--azul); font-weight:600}
+.neg{color:var(--vermelho-escuro); font-weight:600}
+.mudo{color:var(--cinza)}
+
+/* ---------- etiquetas ---------- */
+.tag{
+  display:inline-block; font-family:var(--display); font-size:10.5px; font-weight:600;
+  letter-spacing:.03em; padding:3px 9px; border-radius:999px; white-space:nowrap;
+}
+.tag.ok{background:var(--azul-claro); color:var(--azul)}
+.tag.alerta{background:var(--rosa); color:var(--vermelho-escuro)}
+.tag.neutra{background:var(--superficie); color:var(--cinza)}
+
+/* ---------- avisos ---------- */
+.aviso{
+  border-left:3px solid var(--vermelho); background:var(--rosa);
+  padding:13px 15px; border-radius:0 6px 6px 0; font-size:14px; line-height:1.5;
+}
+.aviso.info{border-left-color:var(--azul); background:var(--azul-claro)}
+.nota{
+  font-size:13px; line-height:1.55; color:var(--cinza);
+  border-left:2px solid var(--linha); padding-left:13px;
+}
+
+/* ---------- indicadores ---------- */
+.indicadores{display:grid; grid-template-columns:repeat(auto-fit,minmax(158px,1fr)); gap:12px}
+.ind{background:var(--branco); border:1px solid var(--linha); border-radius:var(--raio); padding:16px}
+.ind dt{
+  font-family:var(--display); font-size:10px; font-weight:600;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--cinza);
+}
+.ind dd{
+  font-family:var(--display); font-size:28px; font-weight:700;
+  letter-spacing:-.03em; margin-top:7px; color:var(--azul);
+  font-variant-numeric:tabular-nums;
+}
+.ind .nota{font-size:12.5px; margin-top:4px; border:0; padding:0}
+
+@media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}

@@ -5,110 +5,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cadastro biométrico · CNA Taquara</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/cna.css">
 <style>
-:root{
-  --papel:#E8E2D4; --papel-2:#F3EEE3; --tinta:#171B24; --fraca:#6B6F78;
-  --carimbo:#1E6B57; --alerta:#A8431C; --linha:#C6BCA6; --regua:#DCD4C2;
-  --sans:'Instrument Sans',system-ui,sans-serif; --mono:'Azeret Mono',ui-monospace,monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--papel);color:var(--tinta);font-family:var(--sans);font-size:14px}
 
-header{background:var(--tinta);color:var(--papel-2);padding:14px 22px;display:flex;gap:16px;align-items:baseline}
-header h1{font-size:14px;font-weight:600}
-header .sub{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9AA0AB}
-header a{margin-left:auto;color:#9AA0AB;font-size:13px;text-decoration:none}
+main{max-width:790px; margin:0 auto; padding:24px}
+h1.titulo{font-size:16px; font-weight:600}
 
-main{max-width:760px;margin:0 auto;padding:22px}
+.passo{background:var(--branco); border:1px solid var(--linha); border-radius:var(--raio);
+  margin-bottom:16px; overflow:hidden}
+.passo > h2{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--cinza); padding:15px 20px;
+  border-bottom:1px solid var(--linha); display:flex; gap:11px; align-items:center}
+.passo > h2 .num{width:21px; height:21px; border-radius:50%; background:var(--linha);
+  color:var(--branco); display:grid; place-items:center; font-family:var(--display);
+  font-size:11px; font-weight:700}
+.passo.ativo > h2 .num{background:var(--vermelho)}
+.passo.feito > h2 .num{background:var(--azul)}
+.passo .corpo{padding:20px}
+.passo[data-travado] .corpo{opacity:.42; pointer-events:none}
+.passo .corpo > button{margin-right:9px}
 
-.passo{background:var(--papel-2);border:1px solid var(--linha);margin-bottom:14px}
-.passo > h2{
-  font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--fraca);
-  font-weight:500;padding:14px 18px;border-bottom:1px solid var(--linha);
-  display:flex;gap:10px;align-items:center;
-}
-.passo > h2 .num{
-  width:19px;height:19px;border-radius:50%;background:var(--linha);color:var(--papel-2);
-  display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:700;
-}
-.passo.ativo > h2 .num{background:var(--tinta)}
-.passo.feito > h2 .num{background:var(--carimbo)}
-.passo .corpo{padding:18px}
-.passo[data-travado] .corpo{opacity:.4;pointer-events:none}
+.termo{max-height:300px; overflow:auto; border:1px solid var(--linha); background:var(--superficie);
+  padding:20px; font-size:14px; line-height:1.65; white-space:pre-wrap; border-radius:6px}
+.termo h3{font-family:var(--display); font-size:16px; font-weight:600; margin-bottom:13px; color:var(--vermelho)}
+.aceite{margin-top:16px; display:flex; gap:12px; align-items:flex-start; padding:14px 16px;
+  border-left:3px solid var(--azul); background:var(--azul-claro); border-radius:0 6px 6px 0}
+.aceite input{margin-top:3px; width:18px; height:18px; accent-color:var(--azul); flex:0 0 auto}
+.aceite label{font-size:14px; line-height:1.5; cursor:pointer}
 
-label.campo{display:block;margin-bottom:13px}
-label.campo > span{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--fraca);margin-bottom:5px}
-select,input[type=text]{
-  width:100%;font-family:var(--mono);font-size:14px;padding:10px;
-  border:1px solid var(--linha);background:var(--papel);color:var(--tinta);border-radius:2px;
-}
-button{
-  border:0;border-radius:2px;cursor:pointer;background:var(--tinta);color:var(--papel-2);
-  font-family:var(--sans);font-size:14px;font-weight:500;padding:12px 20px;
-}
-button.leve{background:transparent;color:var(--tinta);border:1px solid var(--linha)}
-button:disabled{background:var(--fraca);cursor:default}
-
-/* termo */
-.termo{
-  max-height:290px;overflow:auto;border:1px solid var(--linha);background:var(--papel);
-  padding:18px;font-size:13px;line-height:1.62;white-space:pre-wrap;
-}
-.termo h3{font-size:14px;margin-bottom:12px}
-.aceite{
-  margin-top:15px;display:flex;gap:11px;align-items:flex-start;
-  padding:13px 15px;border-left:3px solid var(--carimbo);background:rgba(30,107,87,.06);
-}
-.aceite input{margin-top:3px;width:17px;height:17px;accent-color:var(--carimbo);flex:0 0 auto}
-.aceite label{font-size:13.5px;line-height:1.5;cursor:pointer}
-
-/* captura */
-.camera{
-  position:relative;background:#0E1117;aspect-ratio:4/3;max-width:400px;
-  border:1px solid var(--linha);overflow:hidden;margin-bottom:14px;
-}
+.camera{position:relative; background:var(--tinta); aspect-ratio:4/3; max-width:410px;
+  border:1px solid var(--linha); border-radius:8px; overflow:hidden; margin-bottom:16px}
 .camera video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
-.camera .guia{
-  position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;
-  color:#F3EEE3;font-size:15px;font-weight:500;text-align:center;padding:20px;
-  text-shadow:0 1px 8px rgba(0,0,0,.8);
-}
-.amostras{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap}
-.amostra{
-  width:74px;height:74px;border:1px solid var(--linha);background:var(--papel);
-  display:grid;place-items:center;font-family:var(--mono);font-size:10px;
-  color:var(--fraca);text-align:center;line-height:1.3;padding:5px;
-}
-.amostra.ok{border-color:var(--carimbo);color:var(--carimbo);border-width:2px}
+.camera .guia{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
+  color:var(--branco); font-family:var(--display); font-size:16px; font-weight:600;
+  text-align:center; padding:20px; text-shadow:0 1px 10px rgba(0,0,0,.85)}
+.amostras{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap}
+.amostra{width:82px; height:82px; border:1px solid var(--linha); background:var(--superficie);
+  border-radius:8px; display:grid; place-items:center; font-family:var(--display);
+  font-size:11px; font-weight:500; color:var(--cinza); text-align:center; line-height:1.3; padding:6px}
+.amostra.ok{border-color:var(--azul); border-width:2px; background:var(--azul-claro); color:var(--azul)}
 
-.recado{font-size:13px;line-height:1.5;color:var(--fraca);margin-top:11px;min-height:1.4em}
-.recado.erro{color:var(--alerta)}
-.recado.bom{color:var(--carimbo)}
-
-.nota{
-  font-size:12.5px;line-height:1.55;color:var(--fraca);
-  border-left:2px solid var(--linha);padding-left:12px;margin-top:14px;
-}
-
-table{width:100%;border-collapse:collapse;background:var(--papel-2);border:1px solid var(--linha)}
-th{text-align:left;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fraca);font-weight:500;padding:9px 11px;border-bottom:1px solid var(--linha)}
-td{padding:9px 11px;border-bottom:1px solid var(--regua)}
-.tag{display:inline-block;font-size:10px;padding:2px 7px;border:1px solid currentColor;border-radius:2px}
-.tag.ok{color:var(--carimbo)} .tag.falta{color:var(--alerta)} .tag.neutra{color:var(--fraca)}
+.recado{font-size:14px; line-height:1.5; color:var(--cinza); margin-top:12px; min-height:1.4em}
+.recado.erro{color:var(--vermelho-escuro)} .recado.bom{color:var(--azul)}
+.passo .corpo .nota{margin-top:16px}
 
 @media print{
-  header,.passo:not(.imprimir),button,.camera,.amostras{display:none !important}
-  body{background:#fff} .passo{border:0} .termo{max-height:none;overflow:visible;border:0}
+  header,.passo:not(.imprimir),button,.camera,.amostras,.aceite{display:none !important}
+  body{background:#fff} .passo{border:0; box-shadow:none}
+  .termo{max-height:none; overflow:visible; border:0; background:#fff; padding:0}
 }
+
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Cadastro biométrico</h1>
-  <span class="sub">Presencial · CNA Taquara</span>
-  <a href="./admin.html">Administração</a>
+<header class="topo">
+  <div class="marca"><img src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><span class="lockup"><b>CNA</b> <i>idiomas</i></span><span class="unidade">Taquara</span></div>
+  <h1 class="titulo">Cadastro biométrico</h1>
+  <nav class="abas">
+    <a href="./admin.html">Administração</a>
+    <a href="./">Bater ponto</a>
+  </nav>
 </header>
 
 <main>
@@ -143,7 +101,7 @@ td{padding:9px 11px;border-bottom:1px solid var(--regua)}
       <span>Confirme seu nome completo</span>
       <input type="text" id="nome-aceite" placeholder="digite seu nome como no documento">
     </label>
-    <button id="btn-consentir" disabled>Registrar consentimento</button>
+    <button class="acao" id="btn-consentir" disabled>Registrar consentimento</button>
     <button class="leve" onclick="window.print()">Imprimir para assinatura</button>
     <p class="recado" id="r2"></p>
     <p class="nota">
@@ -162,9 +120,9 @@ td{padding:9px 11px;border-bottom:1px solid var(--regua)}
       <div class="guia" id="guia">Enquadre o rosto</div>
     </div>
     <div class="amostras" id="amostras"></div>
-    <button id="btn-camera">Ligar a câmera</button>
-    <button id="btn-capturar" disabled>Capturar amostra</button>
-    <button id="btn-salvar" disabled>Salvar cadastro</button>
+    <button class="acao azul" id="btn-camera">Ligar a câmera</button>
+    <button class="acao" id="btn-capturar" disabled>Capturar amostra</button>
+    <button class="acao azul" id="btn-salvar" disabled>Salvar cadastro</button>
     <p class="recado" id="r3"></p>
     <p class="nota">
       São três amostras em posições diferentes porque o rosto muda: óculos,
@@ -238,7 +196,7 @@ async function carregarPessoas(){
     <td>${p.aparelhos ? `<span class="tag ok">${p.aparelhos}</span>` : '<span class="tag neutra">aguardando</span>'}</td>
     <td>${p.pronto ? '<span class="tag ok">sim</span>' : '<span class="tag falta">não</span>'}</td>
   </tr>`).join('')
-    : '<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--fraca)">Nenhuma pessoa cadastrada ainda. Cadastre na aba Equipe da administração.</td></tr>';
+    : '<tr><td colspan="6" class="vazio" style="text-align:center">Nenhuma pessoa cadastrada ainda. Cadastre na aba Equipe da administração.</td></tr>';
 }
 
 $('pessoa').onchange = async () => {
@@ -414,7 +372,7 @@ $('btn-salvar').onclick = async () => {
   const { data: t } = await P.from('termos').select('*').eq('vigente', true).maybeSingle();
   TERMO = t;
   $('termo').innerHTML = t
-    ? `<h3>${esc(t.titulo)}</h3>${esc(t.texto)}<p style="margin-top:16px;color:var(--fraca);font-family:var(--mono);font-size:11px">versão ${esc(t.versao)}</p>`
+    ? `<h3>${esc(t.titulo)}</h3>${esc(t.texto)}<p style="margin-top:16px;color:var(--cinza);font-family:var(--display);font-size:11px">versão ${esc(t.versao)}</p>`
     : 'Nenhum termo vigente cadastrado.';
 
   await carregarPessoas();

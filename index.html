@@ -3,163 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#E8E2D4">
+<meta name="theme-color" content="#FFFFFF">
 <title>Ponto · CNA Taquara</title>
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/cna.css">
+<link rel="manifest" href="./manifest.webmanifest">
 <style>
-:root{
-  --papel:#E8E2D4; --papel-2:#F3EEE3; --tinta:#171B24; --tinta-fraca:#6B6F78;
-  --carimbo:#1E6B57; --alerta:#A8431C; --linha:#C6BCA6;
-  --perfuro:#D6CEBB;
-  --serif:'Instrument Sans',system-ui,sans-serif;
-  --mono:'Azeret Mono',ui-monospace,monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
 html,body{height:100%}
-body{
-  background:var(--papel); color:var(--tinta); font-family:var(--serif);
-  display:flex; align-items:stretch; justify-content:center;
-  padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px);
-  overflow:hidden;
-}
+body{display:flex; justify-content:center; align-items:stretch; overflow:hidden;
+  padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px)}
+.cartao{width:100%; max-width:440px; margin:14px 0; display:flex; flex-direction:column;
+  background:var(--branco); border:1px solid var(--linha); border-radius:12px;
+  box-shadow:var(--sombra); overflow:hidden}
+.topo{padding:20px 22px 0; display:flex; justify-content:space-between; align-items:center; gap:12px}
+.pessoa{font-family:var(--display); font-size:12.5px; font-weight:500; color:var(--cinza); text-align:right}
 
-/* ---- o cartão de ponto: elemento central da interface ---- */
-.cartao{
-  width:100%; max-width:430px; margin:14px 0;
-  background:var(--papel-2);
-  border:1px solid var(--linha);
-  border-radius:3px;
-  display:flex; flex-direction:column;
-  position:relative; overflow:hidden;
-  box-shadow:0 1px 0 rgba(23,27,36,.06), 0 18px 40px -28px rgba(23,27,36,.5);
-}
-/* borda perfurada: a marca do cartão de ponto mecânico */
-.cartao::before,.cartao::after{
-  content:''; position:absolute; left:0; right:0; height:14px;
-  background-image:radial-gradient(circle at 7px 7px, var(--perfuro) 3px, transparent 3.4px);
-  background-size:19px 14px; opacity:.9; pointer-events:none;
-}
-.cartao::before{top:0}
-.cartao::after{bottom:0; transform:rotate(180deg)}
+.relogio{padding:22px 22px 4px}
+.hora{font-family:var(--display); font-weight:700; font-size:clamp(54px,17vw,74px);
+  letter-spacing:-.05em; line-height:.9; color:var(--azul); font-variant-numeric:tabular-nums}
+.hora .seg{font-size:.4em; font-weight:500; color:var(--cinza); letter-spacing:-.01em}
+.data{font-size:13px; color:var(--cinza); margin-top:11px}
 
-.topo{padding:30px 24px 0; display:flex; justify-content:space-between; align-items:baseline}
-.unidade{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--tinta-fraca)}
-.pessoa{font-size:11px; letter-spacing:.04em; color:var(--tinta-fraca); text-align:right}
-
-/* ---- relógio ---- */
-.relogio{padding:18px 24px 6px}
-.hora{
-  font-family:var(--mono); font-weight:700; font-size:clamp(52px,17vw,72px);
-  letter-spacing:-.045em; line-height:.9; font-variant-numeric:tabular-nums;
-}
-.hora .seg{font-size:.42em; font-weight:400; color:var(--tinta-fraca); letter-spacing:-.01em}
-.data{font-family:var(--mono); font-size:11px; color:var(--tinta-fraca); margin-top:9px; letter-spacing:.02em}
-
-/* ---- janela da câmera ---- */
-.janela{
-  margin:16px 24px 0; position:relative; border-radius:2px; overflow:hidden;
-  background:#0E1117; aspect-ratio:4/3; border:1px solid var(--linha);
-}
+.janela{margin:18px 22px 0; position:relative; border-radius:8px; overflow:hidden;
+  background:var(--tinta); aspect-ratio:4/3; border:1px solid var(--linha)}
 .janela video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
 .janela.oculta{display:none}
-.mira{
-  position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
-}
-.mira svg{width:62%; max-width:190px; opacity:.55}
-.instrucao{
-  position:absolute; left:0; right:0; bottom:0; padding:14px 16px;
-  background:linear-gradient(transparent,rgba(14,17,23,.92));
-  color:#F3EEE3; font-size:15px; font-weight:500; text-align:center; line-height:1.3;
-}
-.contador{
-  position:absolute; top:10px; right:12px; font-family:var(--mono); font-size:11px;
-  color:#F3EEE3; background:rgba(14,17,23,.6); padding:3px 7px; border-radius:2px;
-}
+.mira{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
+.mira svg{width:62%; max-width:190px; opacity:.6}
+.instrucao{position:absolute; left:0; right:0; bottom:0; padding:15px 16px;
+  background:linear-gradient(transparent,rgba(26,26,26,.92)); color:var(--branco);
+  font-family:var(--display); font-size:16px; font-weight:600; text-align:center; line-height:1.3}
+.contador{position:absolute; top:11px; right:12px; font-family:var(--display); font-weight:600;
+  font-size:12px; color:var(--branco); background:var(--vermelho); padding:3px 9px; border-radius:999px}
 
-/* ---- pauta do cartão (linhas de registro) ---- */
-.pauta{flex:1; margin:16px 24px 0; min-height:0; overflow:auto}
-.pauta h2{
-  font-size:9.5px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--tinta-fraca); font-weight:500; padding-bottom:7px;
-  border-bottom:1px solid var(--linha);
-}
-.batida{
-  display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:baseline;
-  padding:9px 0; border-bottom:1px solid rgba(198,188,166,.45);
-  font-family:var(--mono); font-size:12.5px;
-}
-.batida .nsr{color:var(--tinta-fraca); font-size:10px}
-.batida .sinal{font-size:9px; letter-spacing:.08em; text-transform:uppercase}
-.sinal.ok{color:var(--carimbo)} .sinal.rev{color:var(--alerta)}
-.vazio{padding:22px 0; color:var(--tinta-fraca); font-size:13.5px; line-height:1.5}
+.pauta{flex:1; margin:20px 22px 0; min-height:0; overflow:auto}
+.pauta h2{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--cinza); padding-bottom:9px; border-bottom:1px solid var(--linha)}
+.batida{display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center;
+  padding:11px 0; border-bottom:1px solid var(--linha); font-size:14px}
+.batida > span:first-child{font-family:var(--display); font-weight:600; font-variant-numeric:tabular-nums}
+.batida .nsr{color:var(--cinza); font-size:12px; font-variant-numeric:tabular-nums}
+.batida .sinal{font-family:var(--display); font-size:10.5px; font-weight:600;
+  padding:3px 9px; border-radius:999px}
+.sinal.ok{background:var(--azul-claro); color:var(--azul)}
+.sinal.rev{background:var(--rosa); color:var(--vermelho-escuro)}
+.vazio{padding:24px 0; color:var(--cinza); font-size:14px; line-height:1.5}
 
-/* ---- ação ---- */
-.acao{padding:14px 24px 26px}
-button.bater{
-  width:100%; border:0; border-radius:2px; cursor:pointer;
-  background:var(--tinta); color:var(--papel-2);
-  font-family:var(--serif); font-size:16px; font-weight:600; letter-spacing:.01em;
-  padding:19px; transition:transform .12s ease, background .2s ease;
-}
+.acao{padding:16px 22px 24px}
+button.bater{width:100%; border:0; border-radius:8px; cursor:pointer;
+  background:var(--vermelho); color:var(--branco); font-family:var(--display);
+  font-size:17px; font-weight:600; padding:19px; transition:background .15s, transform .1s}
+button.bater:hover{background:var(--vermelho-escuro)}
 button.bater:active{transform:scale(.985)}
-button.bater:disabled{background:var(--tinta-fraca); cursor:default}
-button.bater:focus-visible{outline:2px solid var(--carimbo); outline-offset:3px}
-.aviso{margin-top:11px; font-size:12px; line-height:1.45; color:var(--tinta-fraca); text-align:center}
-.aviso.erro{color:var(--alerta)}
+button.bater:disabled{background:var(--linha); color:var(--cinza); cursor:default}
+button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
+#registrar-aparelho{background:var(--azul); margin-bottom:9px}
+#registrar-aparelho:hover{background:#142F66}
+.aviso{margin-top:12px; font-size:13px; line-height:1.45; color:var(--cinza);
+  text-align:center; border:0; background:none; padding:0}
+.aviso.erro{color:var(--vermelho-escuro)}
+.aviso a{color:var(--cinza)}
 
-/* ---- o carimbo: assinatura visual da tela ---- */
-.carimbo{
-  position:fixed; inset:0; background:rgba(232,226,212,.96);
-  display:none; place-items:center; padding:20px; z-index:20;
-}
+/* comprovante: o carimbo de conclusão */
+.carimbo{position:fixed; inset:0; background:rgba(247,247,249,.97);
+  display:none; place-items:center; padding:20px; z-index:20}
 .carimbo.aberto{display:grid}
-.recibo{
-  width:100%; max-width:340px; background:var(--papel-2);
-  border:1px solid var(--linha); padding:32px 26px 26px; position:relative;
-  animation:prensa .5s cubic-bezier(.2,1.5,.4,1) both;
-}
+.recibo{width:100%; max-width:350px; background:var(--branco); border:1px solid var(--linha);
+  border-radius:12px; padding:34px 28px 26px; position:relative; box-shadow:var(--sombra);
+  animation:prensa .5s cubic-bezier(.2,1.5,.4,1) both}
 @keyframes prensa{
   0%{transform:scale(1.5) rotate(-7deg); opacity:0}
   55%{transform:scale(.97) rotate(1.2deg); opacity:1}
-  100%{transform:scale(1) rotate(0); opacity:1}
-}
-.recibo .selo{
-  position:absolute; top:-22px; right:18px;
-  width:76px; height:76px; border:2.5px solid var(--carimbo); border-radius:50%;
-  display:grid; place-items:center; text-align:center; transform:rotate(-13deg);
-  color:var(--carimbo); font-family:var(--mono); font-size:8.5px; font-weight:700;
-  letter-spacing:.06em; line-height:1.25; background:var(--papel-2);
-  animation:bate .45s .18s cubic-bezier(.2,1.8,.4,1) both;
-}
+  100%{transform:scale(1) rotate(0); opacity:1}}
+.recibo .selo{position:absolute; top:-20px; right:20px; width:78px; height:78px;
+  border:2.5px solid var(--vermelho); border-radius:50%; display:grid; place-items:center;
+  text-align:center; transform:rotate(-13deg); color:var(--vermelho);
+  font-family:var(--display); font-size:9px; font-weight:700; letter-spacing:.05em;
+  line-height:1.25; background:var(--branco); animation:bate .45s .18s cubic-bezier(.2,1.8,.4,1) both}
 @keyframes bate{0%{transform:rotate(-13deg) scale(2.2);opacity:0}100%{transform:rotate(-13deg) scale(1);opacity:1}}
-.recibo h3{font-size:10px; letter-spacing:.15em; text-transform:uppercase; color:var(--tinta-fraca); font-weight:500}
-.recibo .marca{font-family:var(--mono); font-size:40px; font-weight:700; letter-spacing:-.04em; margin:9px 0 3px}
-.recibo dl{margin-top:20px; border-top:1px solid var(--linha); padding-top:14px; font-family:var(--mono); font-size:10.5px}
-.recibo dt{color:var(--tinta-fraca); font-size:8px; letter-spacing:.12em; text-transform:uppercase; margin-top:11px}
-.recibo dd{margin-top:2px; word-break:break-all; line-height:1.45}
-.recibo .botoes{display:flex; gap:9px; margin-top:22px}
-.recibo button{
-  flex:1; padding:13px; border:1px solid var(--tinta); background:transparent;
-  color:var(--tinta); font-family:var(--serif); font-size:13px; font-weight:500;
-  border-radius:2px; cursor:pointer;
-}
-.recibo button.principal{background:var(--tinta); color:var(--papel-2)}
-.recibo .revisao{
-  margin-top:14px; padding:11px 12px; border-left:2.5px solid var(--alerta);
-  background:rgba(168,67,28,.06); font-size:12px; line-height:1.45; color:var(--tinta);
-}
+.recibo h3{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--cinza)}
+.recibo .marca-hora{font-family:var(--display); font-size:42px; font-weight:700;
+  letter-spacing:-.04em; margin:10px 0 3px; color:var(--azul); font-variant-numeric:tabular-nums}
+.recibo dl{margin-top:20px; border-top:1px solid var(--linha); padding-top:15px; font-size:13px}
+.recibo dt{font-family:var(--display); color:var(--cinza); font-size:9.5px; font-weight:600;
+  letter-spacing:.12em; text-transform:uppercase; margin-top:13px}
+.recibo dd{margin-top:3px; word-break:break-all; line-height:1.45; font-variant-numeric:tabular-nums}
+.recibo .botoes{display:flex; gap:10px; margin-top:22px}
+.recibo .botoes button{flex:1}
+.recibo .revisao{margin-top:15px; padding:12px 14px; border-left:3px solid var(--vermelho);
+  background:var(--rosa); border-radius:0 6px 6px 0; font-size:13px; line-height:1.45; color:var(--tinta)}
 
-@media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important}}
 </style>
 </head>
 <body>
 
 <main class="cartao">
   <header class="topo">
-    <span class="unidade">CNA Taquara</span>
+    <div class="marca"><img src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><span class="lockup"><b>CNA</b> <i>idiomas</i></span><span class="unidade">Taquara</span></div>
     <span class="pessoa" id="pessoa">—</span>
   </header>
 
@@ -171,7 +114,7 @@ button.bater:focus-visible{outline:2px solid var(--carimbo); outline-offset:3px}
   <div class="janela oculta" id="janela">
     <video id="video" playsinline muted autoplay></video>
     <div class="mira">
-      <svg viewBox="0 0 200 200" fill="none" stroke="#F3EEE3" stroke-width="1.5">
+      <svg viewBox="0 0 200 200" fill="none" stroke="#FFFFFF" stroke-width="1.5">
         <path d="M100 22c30 0 48 24 48 60 0 42-22 74-48 74s-48-32-48-74c0-36 18-60 48-60Z"/>
       </svg>
     </div>
@@ -188,7 +131,7 @@ button.bater:focus-visible{outline:2px solid var(--carimbo); outline-offset:3px}
     <button class="bater" id="registrar-aparelho" hidden>Registrar este celular</button>
     <button class="bater" id="bater">Bater ponto</button>
     <p class="aviso" id="aviso">O horário registrado é o do servidor, não o do aparelho.</p>
-    <p class="aviso" style="margin-top:6px"><a href="./admin.html" style="color:var(--tinta-fraca)">Administração</a></p>
+    <p class="aviso" style="margin-top:6px"><a href="./admin.html" style="color:var(--cinza)">Administração</a></p>
   </footer>
 </main>
 
@@ -196,8 +139,8 @@ button.bater:focus-visible{outline:2px solid var(--carimbo); outline-offset:3px}
   <div class="recibo">
     <div class="selo" id="selo">REGISTRADO</div>
     <h3 id="rec-titulo">Comprovante de registro de ponto</h3>
-    <p class="marca" id="rec-hora">--:--</p>
-    <p style="font-size:12.5px;color:var(--tinta-fraca)" id="rec-data"></p>
+    <p class="marca-hora" id="rec-hora">--:--</p>
+    <p style="font-size:13px;color:var(--cinza)" id="rec-data"></p>
     <div id="rec-revisao"></div>
     <dl>
       <dt>NSR</dt><dd id="rec-nsr"></dd>
@@ -205,8 +148,8 @@ button.bater:focus-visible{outline:2px solid var(--carimbo); outline-offset:3px}
       <dt>Código hash (SHA-256)</dt><dd id="rec-hash"></dd>
     </dl>
     <div class="botoes">
-      <button id="rec-pdf">Baixar PDF</button>
-      <button class="principal" id="rec-fechar">Concluir</button>
+      <button class="leve" id="rec-pdf">Baixar PDF</button>
+      <button class="acao" id="rec-fechar">Concluir</button>
     </div>
   </div>
 </div>
@@ -456,7 +399,8 @@ function mostrarRecibo(r){
 
   const selo = $('selo');
   selo.textContent = r.em_revisao ? 'EM REVISÃO' : 'REGISTRADO';
-  selo.style.borderColor = selo.style.color = r.em_revisao ? 'var(--alerta)' : 'var(--carimbo)';
+  selo.style.borderColor = selo.style.color =
+    r.em_revisao ? 'var(--vermelho)' : 'var(--azul)';
 
   $('rec-revisao').innerHTML = r.em_revisao
     ? `<p class="revisao">A marcação está gravada e vale para a sua jornada.

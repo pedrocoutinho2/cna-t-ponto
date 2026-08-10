@@ -5,135 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ponto · Administração — CNA Taquara</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/cna.css">
 <style>
-:root{
-  --papel:#E8E2D4; --papel-2:#F3EEE3; --tinta:#171B24; --fraca:#6B6F78;
-  --carimbo:#1E6B57; --alerta:#A8431C; --linha:#C6BCA6; --regua:#DCD4C2;
-  --sans:'Instrument Sans',system-ui,sans-serif;
-  --mono:'Azeret Mono',ui-monospace,monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--papel);color:var(--tinta);font-family:var(--sans);font-size:14px}
 
-/* cabeçalho */
-header{
-  background:var(--tinta); color:var(--papel-2);
-  padding:14px 22px; display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
-  position:sticky; top:0; z-index:10;
-}
-header h1{font-size:14px; font-weight:600; letter-spacing:.02em}
-header .sub{font-size:11px; color:#9AA0AB; letter-spacing:.1em; text-transform:uppercase}
-nav{display:flex; gap:2px; margin-left:auto; flex-wrap:wrap}
-nav button{
-  background:transparent; border:0; color:#9AA0AB; cursor:pointer;
-  font-family:var(--sans); font-size:13px; padding:7px 13px; border-radius:2px;
-}
-nav button[aria-selected=true]{background:var(--papel-2); color:var(--tinta); font-weight:600}
-nav button:focus-visible{outline:2px solid var(--carimbo); outline-offset:2px}
-
-main{max-width:1240px; margin:0 auto; padding:22px}
+main{max-width:1260px; margin:0 auto; padding:24px}
 .painel[hidden]{display:none}
+h1.titulo{font-size:16px; font-weight:600}
+.filtros{display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:20px}
+.filtros label.campo{margin-bottom:0}
+.filtros input,.filtros select{width:auto; min-width:150px}
+#e-indicadores{margin-bottom:20px}
+tr.fds td{background:var(--superficie); color:var(--cinza)}
+tr.problema td:first-child{box-shadow:inset 3px 0 0 var(--vermelho)}
+.vazio{padding:34px 14px; color:var(--cinza); text-align:center; line-height:1.55}
 
-/* barra de filtros */
-.filtros{display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:18px}
-label.campo{display:flex; flex-direction:column; gap:4px}
-label.campo span{font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--fraca)}
-select,input[type=month],input[type=text],input[type=date],input[type=time],input[type=number]{
-  font-family:var(--mono); font-size:13px; padding:8px 10px;
-  border:1px solid var(--linha); background:var(--papel-2); color:var(--tinta); border-radius:2px;
-}
-textarea{
-  font-family:var(--sans); font-size:13px; padding:9px 10px; width:100%;
-  border:1px solid var(--linha); background:var(--papel-2); color:var(--tinta);
-  border-radius:2px; resize:vertical; min-height:70px;
-}
-button.acao{
-  background:var(--tinta); color:var(--papel-2); border:0; border-radius:2px;
-  padding:9px 16px; font-family:var(--sans); font-size:13px; font-weight:500; cursor:pointer;
-}
-button.leve{background:transparent; color:var(--tinta); border:1px solid var(--linha)}
-button.acao:disabled{opacity:.45; cursor:default}
+.semana{display:grid; grid-template-columns:170px repeat(6,1fr); gap:4px; align-items:center}
+.semana .cab{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--cinza); text-align:center}
+.semana .quem{font-size:14px; padding-right:10px}
+.cel{height:40px; display:grid; place-items:center; font-family:var(--display); font-weight:500;
+  font-size:13px; border:1px solid var(--linha); background:var(--branco); border-radius:6px;
+  font-variant-numeric:tabular-nums}
+h2.secao{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--cinza); margin:30px 0 12px}
 
-/* livro de ponto: a mesa é o elemento central deste painel */
-table{width:100%; border-collapse:collapse; background:var(--papel-2); border:1px solid var(--linha)}
-caption{
-  text-align:left; padding:13px 14px; font-size:10px; letter-spacing:.15em;
-  text-transform:uppercase; color:var(--fraca); border-bottom:1px solid var(--linha);
-}
-th{
-  text-align:left; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--fraca); font-weight:500; padding:9px 11px; border-bottom:1px solid var(--linha);
-  white-space:nowrap;
-}
-td{padding:9px 11px; border-bottom:1px solid var(--regua); vertical-align:top}
-tbody tr:last-child td{border-bottom:0}
-tbody tr:hover{background:rgba(198,188,166,.16)}
-td.n,th.n{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right}
-td.hora{font-family:var(--mono); font-variant-numeric:tabular-nums}
-.pos{color:var(--carimbo)} .neg{color:var(--alerta)}
-tr.fds td{background:rgba(198,188,166,.2); color:var(--fraca)}
-tr.problema td:first-child{box-shadow:inset 3px 0 0 var(--alerta)}
-.tag{
-  display:inline-block; font-size:10px; padding:2px 7px; border-radius:2px;
-  border:1px solid currentColor; letter-spacing:.02em; white-space:nowrap;
-}
-.tag.alerta{color:var(--alerta)} .tag.ok{color:var(--carimbo)} .tag.neutra{color:var(--fraca)}
-.mudo{color:var(--fraca)}
-.vazio{padding:30px 14px; color:var(--fraca); text-align:center; line-height:1.55}
+dialog{border:1px solid var(--linha); background:var(--branco); padding:0; border-radius:12px;
+  max-width:460px; width:calc(100% - 32px); color:var(--tinta); box-shadow:var(--sombra)}
+dialog::backdrop{background:rgba(26,26,26,.45)}
+dialog h2{font-size:19px; font-weight:600; padding:22px 24px 0}
+dialog .corpo{padding:18px 24px}
+dialog .rodape{padding:16px 24px 22px; display:flex; gap:10px; justify-content:flex-end}
+dialog .nota{margin-top:14px}
 
-/* cartões de indicador */
-.indicadores{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:11px; margin-bottom:18px}
-.ind{background:var(--papel-2); border:1px solid var(--linha); padding:14px}
-.ind dt{font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--fraca)}
-.ind dd{font-family:var(--mono); font-size:27px; font-weight:700; letter-spacing:-.03em; margin-top:6px}
-.ind .nota{font-size:11.5px; color:var(--fraca); margin-top:3px; line-height:1.35}
-
-/* recorrência por dia da semana */
-.semana{display:grid; grid-template-columns:150px repeat(6,1fr); gap:3px; align-items:center}
-.semana .cab{font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--fraca); text-align:center}
-.semana .quem{font-size:13px; padding-right:9px}
-.cel{
-  height:38px; display:grid; place-items:center; font-family:var(--mono);
-  font-size:12px; border:1px solid var(--linha); background:var(--papel-2);
-}
-
-/* diálogo */
-dialog{
-  border:1px solid var(--linha); background:var(--papel-2); padding:0;
-  max-width:440px; width:calc(100% - 32px); border-radius:2px; color:var(--tinta);
-}
-dialog::backdrop{background:rgba(23,27,36,.5)}
-dialog h2{font-size:15px; padding:18px 20px 0}
-dialog .corpo{padding:16px 20px; display:grid; gap:12px}
-dialog .rodape{padding:14px 20px 18px; display:flex; gap:9px; justify-content:flex-end}
-dialog .nota{font-size:12px; color:var(--fraca); line-height:1.45}
-
-.aviso{
-  border-left:3px solid var(--alerta); background:rgba(168,67,28,.06);
-  padding:12px 14px; font-size:13px; line-height:1.5; margin-bottom:16px;
-}
 @media (max-width:760px){
   main{padding:14px}
   table{display:block; overflow-x:auto; white-space:nowrap}
-  .semana{grid-template-columns:110px repeat(6,1fr); font-size:11px}
+  .semana{grid-template-columns:120px repeat(6,1fr); font-size:12px}
 }
+
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Ponto · Administração</h1>
-  <span class="sub">CNA Taquara</span>
-  <nav role="tablist">
+<header class="topo">
+  <div class="marca"><img src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><span class="lockup"><b>CNA</b> <i>idiomas</i></span><span class="unidade">Taquara</span></div>
+  <h1 class="titulo">Administração do ponto</h1>
+  <nav class="abas" role="tablist">
     <button role="tab" data-aba="equipe"     aria-selected="true">Equipe</button>
     <button role="tab" data-aba="espelho"    aria-selected="false">Espelho</button>
     <button role="tab" data-aba="banco"      aria-selected="false">Banco de horas</button>
     <button role="tab" data-aba="pendencias" aria-selected="false">Pendências</button>
     <button role="tab" data-aba="relatorios" aria-selected="false">Relatórios</button>
   </nav>
-  <a href="./cadastro.html" style="color:#9AA0AB;font-size:13px;text-decoration:none;padding:7px 4px">Cadastro biométrico</a>
-  <a href="./" style="color:#9AA0AB;font-size:13px;text-decoration:none;padding:7px 4px">Bater ponto</a>
+    <a href="./cadastro.html">Cadastro biométrico</a>
+    <a href="./">Bater ponto</a>
 </header>
 
 <main>
@@ -179,7 +105,7 @@ dialog .nota{font-size:12px; color:var(--fraca); line-height:1.45}
 
 <!-- ============ BANCO ============ -->
 <section class="painel" id="p-banco" hidden>
-  <div class="aviso" id="banco-aviso"></div>
+  <div class="aviso info" id="banco-aviso" style="margin-bottom:18px"></div>
   <div class="filtros">
     <label class="campo"><span>Pessoa</span><select id="b-pessoa"><option value="">Todas</option></select></label>
     <label class="campo"><span>De</span><input type="date" id="b-ini"></label>
@@ -233,17 +159,17 @@ dialog .nota{font-size:12px; color:var(--fraca); line-height:1.45}
     <tbody id="t-resumo"></tbody>
   </table>
 
-  <h2 style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--fraca);margin:26px 0 11px">
+  <h2 class="secao">
     Atraso por dia da semana
   </h2>
-  <p class="mudo" style="font-size:12.5px;line-height:1.5;margin-bottom:13px;max-width:66ch">
+  <p class="mudo" style="margin-bottom:14px;max-width:66ch;border:0;padding:0">
     Cada célula mostra quantas vezes a pessoa chegou atrasada naquele dia, sobre quantos
     dias ela deveria ter trabalhado. Atraso espalhado é acidente. Atraso concentrado num
     dia só é padrão, e padrão se resolve com conversa, não com desconto.
   </p>
   <div class="semana" id="mapa-semana"></div>
 
-  <h2 style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--fraca);margin:26px 0 11px">
+  <h2 class="secao">
     Faltas e ausências
   </h2>
   <table>
@@ -493,7 +419,7 @@ async function carregarEspelho(){
     else if (l.falta)     situacao = '<span class="tag alerta">falta</span>';
     else if (l.abono_min) situacao = '<span class="tag neutra">abonado</span>';
     else if (l.carga_prev_min === 0) situacao = '<span class="tag neutra">folga</span>';
-    const notas = (l.inconsistencias ?? []).map(i => `<div class="mudo" style="font-size:11px;margin-top:3px">${esc(i)}</div>`).join('');
+    const notas = (l.inconsistencias ?? []).map(i => `<div class="mudo" style="font-size:12px;margin-top:4px">${esc(i)}</div>`).join('');
 
     return `<tr class="${fds?'fds':''} ${problema?'problema':''}">
       <td class="hora">${dia(l.data)} <span class="mudo">${DOW[l.dia_semana]}</span></td>
@@ -693,7 +619,7 @@ async function carregarRelatorios(){
 
   const { data: resumo } = await P.rpc('resumo_equipe', { p_ini:ini, p_fim:fim });
   $('t-resumo').innerHTML = (resumo ?? []).map(r => `<tr>
-    <td><strong>${esc(r.nome)}</strong>${r.cargo ? `<div class="mudo" style="font-size:11.5px">${esc(r.cargo)}</div>` : ''}</td>
+    <td><strong>${esc(r.nome)}</strong>${r.cargo ? `<div class="mudo" style="font-size:12.5px">${esc(r.cargo)}</div>` : ''}</td>
     <td class="n">${r.dias_previstos}</td>
     <td class="n">${r.dias_trabalhados}</td>
     <td class="n ${r.faltas ? 'neg' : ''}">${r.faltas}</td>
@@ -717,7 +643,7 @@ async function carregarRelatorios(){
       if (!r) return '<div class="cel mudo">·</div>';
       const forte = r.taxa >= 0.5;
       return `<div class="cel" style="${forte
-        ? 'background:rgba(168,67,28,.13);border-color:var(--alerta);color:var(--alerta);font-weight:700'
+        ? 'background:var(--rosa);border-color:var(--vermelho);color:var(--vermelho-escuro);font-weight:700'
         : ''}" title="média de ${r.atraso_medio_min} min">${r.ocorrencias}/${r.dias_no_periodo}</div>`;
     }).join('')).join('');
 
@@ -750,7 +676,7 @@ async function carregarRelatorios(){
   if (!EU) {
     const av = document.createElement('div');
     av.className = 'aviso';
-    av.style.margin = '14px 22px 0';
+    av.style.margin = '18px 24px 0';
     av.innerHTML = 'Seu login ainda não está ligado a um cadastro de pessoa. '
       + 'Cadastre-se na aba Equipe usando <strong>' + esc(session.user.email)
       + '</strong> como e-mail de acesso — o vínculo acontece sozinho. '
