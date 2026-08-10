@@ -110,7 +110,7 @@ vinculado, aguardando primeiro login, ou sem e-mail.
 
 ## Depois disso
 
-Publicar o `pwa/` no GitHub Pages e fazer o deploy das quatro Edge
+Publicar o a raiz do repositório no GitHub Pages e fazer o deploy das quatro Edge
 Functions. Nenhuma das duas telas funciona antes do passo 1.
 
 O cadastro biométrico presencial ainda não foi construído — é a próxima
