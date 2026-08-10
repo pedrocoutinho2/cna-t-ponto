@@ -9,15 +9,28 @@ atualizado: 2026-08-10
 Migrations e seed já estão aplicados no projeto `snipevyvfxaotjhnabmx`.
 Faltam cinco passos manuais.
 
-## 1. Expor o schema `ponto` na API  (sem isto, nada funciona)
+## 1. Expor o schema `ponto` na API  — FEITO
 
-Painel → **Integrations → Data API → Settings → Exposed schemas** (em algumas
-versões o caminho é **Project Settings → Data API → Exposed schemas**) → acrescentar
-`ponto` ao lado de `public`. Salvar.
+Já resolvido por SQL, não precisa mexer no painel:
 
-O PostgREST só serve schemas listados ali. Enquanto `ponto` não estiver
-na lista, toda chamada do PWA e do admin volta 404, mesmo com as tabelas
-existindo e o RLS correto.
+```sql
+alter role authenticator set pgrst.db_schemas = 'public, graphql_public, ponto';
+notify pgrst, 'reload config';
+```
+
+Verificado: o PostgREST responde no schema `ponto` e recusa o papel `anon`,
+que é o comportamento correto.
+
+**Um detalhe para lembrar depois.** Isto é um override em nível de banco e
+ele **vence** a configuração do painel. Se um dia alguém abrir
+*Integrations → Data API → Settings → Exposed schemas* e salvar sem incluir
+`ponto`, a tela vai mostrar uma coisa e o servidor vai fazer outra — é uma
+divergência conhecida do Supabase hospedado e rende horas de depuração.
+Se precisar voltar ao controle pelo painel:
+
+```sql
+alter role authenticator reset pgrst.db_schemas;
+```
 
 ## 2. Criar o bucket de evidências
 
