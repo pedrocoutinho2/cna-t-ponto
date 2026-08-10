@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro biométrico · CNA Taquara</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Azeret+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#E8E2D4; --papel-2:#F3EEE3; --tinta:#171B24; --fraca:#6B6F78;
+  --carimbo:#1E6B57; --alerta:#A8431C; --linha:#C6BCA6; --regua:#DCD4C2;
+  --sans:'Instrument Sans',system-ui,sans-serif; --mono:'Azeret Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--papel);color:var(--tinta);font-family:var(--sans);font-size:14px}
+
+header{background:var(--tinta);color:var(--papel-2);padding:14px 22px;display:flex;gap:16px;align-items:baseline}
+header h1{font-size:14px;font-weight:600}
+header .sub{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9AA0AB}
+header a{margin-left:auto;color:#9AA0AB;font-size:13px;text-decoration:none}
+
+main{max-width:760px;margin:0 auto;padding:22px}
+
+.passo{background:var(--papel-2);border:1px solid var(--linha);margin-bottom:14px}
+.passo > h2{
+  font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--fraca);
+  font-weight:500;padding:14px 18px;border-bottom:1px solid var(--linha);
+  display:flex;gap:10px;align-items:center;
+}
+.passo > h2 .num{
+  width:19px;height:19px;border-radius:50%;background:var(--linha);color:var(--papel-2);
+  display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:700;
+}
+.passo.ativo > h2 .num{background:var(--tinta)}
+.passo.feito > h2 .num{background:var(--carimbo)}
+.passo .corpo{padding:18px}
+.passo[data-travado] .corpo{opacity:.4;pointer-events:none}
+
+label.campo{display:block;margin-bottom:13px}
+label.campo > span{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--fraca);margin-bottom:5px}
+select,input[type=text]{
+  width:100%;font-family:var(--mono);font-size:14px;padding:10px;
+  border:1px solid var(--linha);background:var(--papel);color:var(--tinta);border-radius:2px;
+}
+button{
+  border:0;border-radius:2px;cursor:pointer;background:var(--tinta);color:var(--papel-2);
+  font-family:var(--sans);font-size:14px;font-weight:500;padding:12px 20px;
+}
+button.leve{background:transparent;color:var(--tinta);border:1px solid var(--linha)}
+button:disabled{background:var(--fraca);cursor:default}
+
+/* termo */
+.termo{
+  max-height:290px;overflow:auto;border:1px solid var(--linha);background:var(--papel);
+  padding:18px;font-size:13px;line-height:1.62;white-space:pre-wrap;
+}
+.termo h3{font-size:14px;margin-bottom:12px}
+.aceite{
+  margin-top:15px;display:flex;gap:11px;align-items:flex-start;
+  padding:13px 15px;border-left:3px solid var(--carimbo);background:rgba(30,107,87,.06);
+}
+.aceite input{margin-top:3px;width:17px;height:17px;accent-color:var(--carimbo);flex:0 0 auto}
+.aceite label{font-size:13.5px;line-height:1.5;cursor:pointer}
+
+/* captura */
+.camera{
+  position:relative;background:#0E1117;aspect-ratio:4/3;max-width:400px;
+  border:1px solid var(--linha);overflow:hidden;margin-bottom:14px;
+}
+.camera video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+.camera .guia{
+  position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;
+  color:#F3EEE3;font-size:15px;font-weight:500;text-align:center;padding:20px;
+  text-shadow:0 1px 8px rgba(0,0,0,.8);
+}
+.amostras{display:flex;gap:9px;margin-bottom:14px;flex-wrap:wrap}
+.amostra{
+  width:74px;height:74px;border:1px solid var(--linha);background:var(--papel);
+  display:grid;place-items:center;font-family:var(--mono);font-size:10px;
+  color:var(--fraca);text-align:center;line-height:1.3;padding:5px;
+}
+.amostra.ok{border-color:var(--carimbo);color:var(--carimbo);border-width:2px}
+
+.recado{font-size:13px;line-height:1.5;color:var(--fraca);margin-top:11px;min-height:1.4em}
+.recado.erro{color:var(--alerta)}
+.recado.bom{color:var(--carimbo)}
+
+.nota{
+  font-size:12.5px;line-height:1.55;color:var(--fraca);
+  border-left:2px solid var(--linha);padding-left:12px;margin-top:14px;
+}
+
+table{width:100%;border-collapse:collapse;background:var(--papel-2);border:1px solid var(--linha)}
+th{text-align:left;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fraca);font-weight:500;padding:9px 11px;border-bottom:1px solid var(--linha)}
+td{padding:9px 11px;border-bottom:1px solid var(--regua)}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border:1px solid currentColor;border-radius:2px}
+.tag.ok{color:var(--carimbo)} .tag.falta{color:var(--alerta)} .tag.neutra{color:var(--fraca)}
+
+@media print{
+  header,.passo:not(.imprimir),button,.camera,.amostras{display:none !important}
+  body{background:#fff} .passo{border:0} .termo{max-height:none;overflow:visible;border:0}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Cadastro biométrico</h1>
+  <span class="sub">Presencial · CNA Taquara</span>
+  <a href="./admin.html">Administração</a>
+</header>
+
+<main>
+
+<section class="passo ativo" id="p1">
+  <h2><span class="num">1</span> Quem está sendo cadastrado</h2>
+  <div class="corpo">
+    <label class="campo"><span>Pessoa</span><select id="pessoa"></select></label>
+    <div id="situacao"></div>
+    <p class="nota">
+      Este cadastro é presencial por um motivo: é o único momento em que alguém
+      confere que o rosto capturado pertence mesmo à pessoa. Feito à distância,
+      a biometria só garante que sempre é a mesma cara, não de quem ela é.
+    </p>
+  </div>
+</section>
+
+<section class="passo imprimir" id="p2" data-travado>
+  <h2><span class="num">2</span> Termo de consentimento</h2>
+  <div class="corpo">
+    <div class="termo" id="termo">Carregando…</div>
+    <div class="aceite">
+      <input type="checkbox" id="aceito">
+      <label for="aceito">
+        Li o termo acima e <strong>autorizo</strong> o uso da minha biometria facial
+        para confirmar minha identidade no registro de ponto. Estou ciente de que
+        posso revogar esta autorização a qualquer momento, e de que a recusa não
+        me impede de registrar ponto por outro meio.
+      </label>
+    </div>
+    <label class="campo" style="margin-top:14px">
+      <span>Confirme seu nome completo</span>
+      <input type="text" id="nome-aceite" placeholder="digite seu nome como no documento">
+    </label>
+    <button id="btn-consentir" disabled>Registrar consentimento</button>
+    <button class="leve" onclick="window.print()">Imprimir para assinatura</button>
+    <p class="recado" id="r2"></p>
+    <p class="nota">
+      O aceite na tela vale, mas o documento assinado em papel é o que se
+      sustenta melhor numa fiscalização. Imprima, colha a assinatura e guarde
+      junto com a ficha da pessoa.
+    </p>
+  </div>
+</section>
+
+<section class="passo" id="p3" data-travado>
+  <h2><span class="num">3</span> Captura do rosto</h2>
+  <div class="corpo">
+    <div class="camera" id="camera" hidden>
+      <video id="video" playsinline muted autoplay></video>
+      <div class="guia" id="guia">Enquadre o rosto</div>
+    </div>
+    <div class="amostras" id="amostras"></div>
+    <button id="btn-camera">Ligar a câmera</button>
+    <button id="btn-capturar" disabled>Capturar amostra</button>
+    <button id="btn-salvar" disabled>Salvar cadastro</button>
+    <p class="recado" id="r3"></p>
+    <p class="nota">
+      São três amostras em posições diferentes porque o rosto muda: óculos,
+      barba, iluminação da recepção às 8h e às 21h. Uma amostra só gera
+      falha de reconhecimento no dia em que a pessoa está de boné.
+      <br><br>
+      A foto não é enviada. O que sai do navegador é uma sequência de 128
+      números que descreve o rosto e não permite reconstruí-lo.
+    </p>
+  </div>
+</section>
+
+<section class="passo">
+  <h2><span class="num">4</span> Situação da equipe</h2>
+  <div class="corpo">
+    <table>
+      <thead><tr>
+        <th>Pessoa</th><th>Login</th><th>Consentimento</th>
+        <th>Rosto</th><th>Aparelho</th><th>Pronto</th>
+      </tr></thead>
+      <tbody id="t-situacao"></tbody>
+    </table>
+    <p class="nota">
+      O aparelho é registrado pela própria pessoa, no celular dela, na primeira
+      vez que abrir a tela de bater ponto. Não dá para fazer por ela aqui: a
+      chave nasce dentro do aparelho e nunca sai de lá.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<script type="module">
+import * as faceapi from 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const CFG = {
+  url:'https://snipevyvfxaotjhnabmx.supabase.co',
+  anon:'sb_publishable_T0rV6HAXusL_3J3Yzh-P_Q_CieYFkjA',
+  modelos:'./models',
+};
+const sb = createClient(CFG.url, CFG.anon);
+const P  = sb.schema('ponto');
+const $  = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+
+const POSES = [
+  { rotulo:'De frente',        dica:'Olhe direto para a câmera' },
+  { rotulo:'Levemente à dir.', dica:'Vire o rosto um pouco para a direita' },
+  { rotulo:'Levemente à esq.', dica:'Vire o rosto um pouco para a esquerda' },
+];
+
+let EU = null, TERMO = null, stream = null, prontoModelos = false;
+let descritores = [];
+
+/* ---------- passo 1 ---------- */
+async function carregarPessoas(){
+  const { data } = await P.rpc('situacao_cadastro');
+  const lista = data ?? [];
+
+  $('pessoa').innerHTML = '<option value="">— escolha —</option>' +
+    lista.map(p => `<option value="${p.empregado_id}">${esc(p.nome)}${p.pronto ? ' (já cadastrado)' : ''}</option>`).join('');
+
+  $('t-situacao').innerHTML = lista.length ? lista.map(p => `<tr>
+    <td>${esc(p.nome)}</td>
+    <td>${p.tem_login ? '<span class="tag ok">ok</span>' : '<span class="tag falta">falta</span>'}</td>
+    <td>${p.consentiu ? '<span class="tag ok">aceito</span>' : '<span class="tag falta">falta</span>'}</td>
+    <td>${p.amostras_faciais >= 3
+        ? `<span class="tag ok">${p.amostras_faciais} amostras</span>`
+        : `<span class="tag falta">${p.amostras_faciais} de 3</span>`}</td>
+    <td>${p.aparelhos ? `<span class="tag ok">${p.aparelhos}</span>` : '<span class="tag neutra">aguardando</span>'}</td>
+    <td>${p.pronto ? '<span class="tag ok">sim</span>' : '<span class="tag falta">não</span>'}</td>
+  </tr>`).join('')
+    : '<tr><td colspan="6" style="padding:24px;text-align:center;color:var(--fraca)">Nenhuma pessoa cadastrada ainda. Cadastre na aba Equipe da administração.</td></tr>';
+}
+
+$('pessoa').onchange = async () => {
+  const id = $('pessoa').value;
+  descritores = []; pintarAmostras();
+  $('p2').toggleAttribute('data-travado', !id);
+  $('p3').setAttribute('data-travado', '');
+  $('p1').classList.toggle('feito', !!id);
+  if (!id) return ($('situacao').innerHTML = '');
+
+  const { data } = await P.from('consentimentos')
+    .select('aceito, aceito_em, versao')
+    .eq('empregado_id', id).is('revogado_em', null).eq('aceito', true)
+    .order('aceito_em', { ascending:false }).limit(1).maybeSingle();
+
+  if (data){
+    $('situacao').innerHTML =
+      `<p class="recado bom">Consentimento já registrado em ${new Date(data.aceito_em).toLocaleDateString('pt-BR')} (versão ${esc(data.versao)}). Pode ir direto para a captura.</p>`;
+    $('p2').classList.add('feito');
+    $('p3').removeAttribute('data-travado');
+  } else {
+    $('situacao').innerHTML = '';
+    $('p2').classList.remove('feito');
+    $('p2').classList.add('ativo');
+  }
+};
+
+/* ---------- passo 2 ---------- */
+function checarAceite(){
+  $('btn-consentir').disabled =
+    !($('aceito').checked && $('nome-aceite').value.trim().length >= 5);
+}
+$('aceito').onchange = checarAceite;
+$('nome-aceite').oninput = checarAceite;
+
+$('btn-consentir').onclick = async () => {
+  const btn = $('btn-consentir');
+  btn.disabled = true;
+  const { error } = await P.from('consentimentos').insert({
+    empregado_id: $('pessoa').value,
+    versao: TERMO.versao,
+    aceito: true,
+    aceito_por_nome: $('nome-aceite').value.trim().toUpperCase(),
+    testemunha_id: EU?.id ?? null,
+    user_agent: navigator.userAgent,
+  });
+  if (error){
+    $('r2').className = 'recado erro';
+    $('r2').textContent = error.message;
+    btn.disabled = false;
+    return;
+  }
+  $('r2').className = 'recado bom';
+  $('r2').textContent = 'Consentimento registrado. Pode seguir para a captura.';
+  $('p2').classList.add('feito');
+  $('p3').removeAttribute('data-travado');
+  $('p3').classList.add('ativo');
+  carregarPessoas();
+};
+
+/* ---------- passo 3 ---------- */
+function pintarAmostras(){
+  $('amostras').innerHTML = POSES.map((p, i) =>
+    `<div class="amostra ${descritores[i] ? 'ok' : ''}">${descritores[i] ? '✓ ' : ''}${p.rotulo}</div>`
+  ).join('');
+  $('guia').textContent = descritores.length < POSES.length
+    ? POSES[descritores.length].dica : 'Amostras completas';
+  $('btn-salvar').disabled = descritores.length < POSES.length;
+}
+pintarAmostras();
+
+$('btn-camera').onclick = async () => {
+  const btn = $('btn-camera');
+  btn.disabled = true; btn.textContent = 'Carregando modelos…';
+  try {
+    if (!prontoModelos){
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(CFG.modelos),
+        faceapi.nets.faceLandmark68Net.loadFromUri(CFG.modelos),
+        faceapi.nets.faceRecognitionNet.loadFromUri(CFG.modelos),
+      ]);
+      prontoModelos = true;
+    }
+    stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'user', width:{ideal:640}, height:{ideal:480} }, audio:false });
+    $('video').srcObject = stream;
+    $('camera').hidden = false;
+    await $('video').play();
+    btn.textContent = 'Câmera ligada';
+    $('btn-capturar').disabled = false;
+  } catch (e) {
+    $('r3').className = 'recado erro';
+    $('r3').textContent = 'Não consegui abrir a câmera: ' + e.message;
+    btn.disabled = false; btn.textContent = 'Ligar a câmera';
+  }
+};
+
+$('btn-capturar').onclick = async () => {
+  const btn = $('btn-capturar');
+  btn.disabled = true; btn.textContent = 'Capturando…';
+  $('r3').className = 'recado'; $('r3').textContent = '';
+
+  const det = await faceapi
+    .detectSingleFace($('video'), new faceapi.TinyFaceDetectorOptions({ inputSize:320, scoreThreshold:.5 }))
+    .withFaceLandmarks().withFaceDescriptor();
+
+  if (!det){
+    $('r3').className = 'recado erro';
+    $('r3').textContent = 'Não achei um rosto no quadro. Aproxime e melhore a luz.';
+  } else if (det.detection.box.area / (640*480) < 0.04){
+    $('r3').className = 'recado erro';
+    $('r3').textContent = 'Rosto pequeno demais. Chegue mais perto da câmera.';
+  } else {
+    const novo = Array.from(det.descriptor);
+    // Amostras quase idênticas não ajudam: o objetivo é variar a pose.
+    const parecido = descritores.some((d) => distancia(d, novo) < 0.22);
+    if (parecido){
+      $('r3').className = 'recado erro';
+      $('r3').textContent = 'Muito parecida com a anterior. Mude a posição do rosto.';
+    } else {
+      descritores.push(novo);
+      pintarAmostras();
+      $('r3').className = 'recado bom';
+      $('r3').textContent = `Amostra ${descritores.length} de ${POSES.length} capturada.`;
+    }
+  }
+  btn.disabled = false; btn.textContent = 'Capturar amostra';
+};
+
+const distancia = (a, b) => Math.hypot(...a.map((v, i) => v - b[i]));
+
+$('btn-salvar').onclick = async () => {
+  const btn = $('btn-salvar');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+
+  const linhas = descritores.map((d) => ({
+    empregado_id: $('pessoa').value,
+    descritor: `[${d.join(',')}]`,
+    consentimento_em: new Date().toISOString(),
+    consentimento_texto_versao: TERMO.versao,
+  }));
+
+  const { error } = await P.from('biometria_facial').insert(linhas);
+  if (error){
+    $('r3').className = 'recado erro';
+    $('r3').textContent = error.message.includes('row-level')
+      ? 'Consentimento não encontrado para esta pessoa. Registre o passo 2 primeiro.'
+      : error.message;
+    btn.disabled = false; btn.textContent = 'Salvar cadastro';
+    return;
+  }
+
+  stream?.getTracks().forEach(t => t.stop());
+  $('camera').hidden = true;
+  $('p3').classList.add('feito');
+  $('r3').className = 'recado bom';
+  $('r3').textContent =
+    'Cadastro salvo. Falta a pessoa registrar o celular dela na tela de bater ponto.';
+  descritores = []; pintarAmostras();
+  btn.textContent = 'Salvar cadastro';
+  carregarPessoas();
+};
+
+/* ---------- boot ---------- */
+(async () => {
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session){ location.replace('./entrar.html?para=' + encodeURIComponent('./cadastro.html')); return; }
+
+  const { data: eu } = await P.from('empregados')
+    .select('id,nome').eq('auth_user_id', session.user.id).maybeSingle();
+  EU = eu;
+
+  const { data: t } = await P.from('termos').select('*').eq('vigente', true).maybeSingle();
+  TERMO = t;
+  $('termo').innerHTML = t
+    ? `<h3>${esc(t.titulo)}</h3>${esc(t.texto)}<p style="margin-top:16px;color:var(--fraca);font-family:var(--mono);font-size:11px">versão ${esc(t.versao)}</p>`
+    : 'Nenhum termo vigente cadastrado.';
+
+  await carregarPessoas();
+})();
+</script>
+</body>
+</html>

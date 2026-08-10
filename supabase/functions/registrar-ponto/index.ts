@@ -227,11 +227,13 @@ Deno.serve(async (req) => {
   if (corpo.evidencia_b64 && (!liveness_ok || !face_ok || sinais < 4)) {
     // só guarda imagem quando algum sinal falhou — minimização (LGPD art. 6º, III)
     const caminho = `${emp.rep_id}/${registro.nsr}.jpg`;
-    const bytes = Uint8Array.from(atob(corpo.evidencia_b64), (c) => c.charCodeAt(0));
-    await admin.storage.from("liveness").upload(caminho, bytes, {
-      contentType: "image/jpeg", upsert: false,
-    });
-    evidencia = caminho;
+    try {
+      const bytes = Uint8Array.from(atob(corpo.evidencia_b64), (c) => c.charCodeAt(0));
+      const { error } = await admin.storage.from("liveness").upload(caminho, bytes, {
+        contentType: "image/jpeg", upsert: false,
+      });
+      if (!error) evidencia = caminho;
+    } catch { /* bucket ausente nunca pode impedir a marcação */ }
   }
 
   await admin.schema("ponto").from("marcacao_contexto").insert({

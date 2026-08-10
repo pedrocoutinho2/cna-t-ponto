@@ -185,6 +185,7 @@ button.bater:focus-visible{outline:2px solid var(--carimbo); outline-offset:3px}
   </section>
 
   <footer class="acao">
+    <button class="bater" id="registrar-aparelho" hidden>Registrar este celular</button>
     <button class="bater" id="bater">Bater ponto</button>
     <p class="aviso" id="aviso">O horário registrado é o do servidor, não o do aparelho.</p>
     <p class="aviso" style="margin-top:6px"><a href="./admin.html" style="color:var(--tinta-fraca)">Administração</a></p>
@@ -213,7 +214,7 @@ button.bater:focus-visible{outline:2px solid var(--carimbo); outline-offset:3px}
 <script type="module">
 import * as faceapi from 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { startAuthentication } from 'https://esm.sh/@simplewebauthn/browser@13';
+import { startAuthentication, startRegistration } from 'https://esm.sh/@simplewebauthn/browser@13';
 
 const CFG = {
   supabaseUrl: 'https://snipevyvfxaotjhnabmx.supabase.co',
@@ -390,7 +391,7 @@ $('bater').addEventListener('click', async () => {
 
   try{
     const { data:{ session } } = await sb.auth.getSession();
-    if (!session){ location.href = './entrar.html'; return; }
+    if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./'); return; }
     const auth = { Authorization:`Bearer ${session.access_token}`, 'Content-Type':'application/json' };
 
     aviso.textContent = 'Abrindo a câmera…';
@@ -476,6 +477,66 @@ function mostrarRecibo(r){
 }
 $('rec-fechar').onclick = () => $('carimbo').classList.remove('aberto');
 
+/* ---------- registro do aparelho (passkey) ----------
+   A chave nasce dentro do Secure Enclave deste aparelho e nunca sai dele.
+   Por isso ninguém pode registrar o celular de outra pessoa: é o que
+   fecha a brecha da senha emprestada. */
+async function conferirAparelho(){
+  const { data } = await sb.schema('ponto').from('dispositivos')
+    .select('id').eq('ativo', true).limit(1);
+  const temAparelho = (data ?? []).length > 0;
+  $('registrar-aparelho').hidden = temAparelho;
+  $('bater').hidden = !temAparelho;
+  if (!temAparelho){
+    $('aviso').textContent =
+      'Antes da primeira marcação, registre este celular. Leva uns 10 segundos.';
+  }
+  return temAparelho;
+}
+
+$('registrar-aparelho').addEventListener('click', async () => {
+  const btn = $('registrar-aparelho'), aviso = $('aviso');
+  btn.disabled = true; btn.textContent = 'Aguarde…';
+  aviso.className = 'aviso';
+
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./'); return; }
+    const auth = { Authorization:`Bearer ${session.access_token}`, 'Content-Type':'application/json' };
+
+    const r1 = await fetch(`${CFG.supabaseUrl}/functions/v1/webauthn-registro`, {
+      method:'POST', headers:auth, body: JSON.stringify({ etapa:'opcoes' }) });
+    const p1 = await r1.json();
+    if (!r1.ok) throw new Error(p1.erro);
+
+    const resposta = await startRegistration({ optionsJSON: p1.opcoes });
+
+    const r2 = await fetch(`${CFG.supabaseUrl}/functions/v1/webauthn-registro`, {
+      method:'POST', headers:auth,
+      body: JSON.stringify({ etapa:'verificar', resposta, apelido: apelidoDoAparelho() }) });
+    const p2 = await r2.json();
+    if (!r2.ok) throw new Error(p2.erro);
+
+    aviso.textContent = 'Celular registrado. Agora você já pode bater o ponto.';
+    await conferirAparelho();
+  }catch(e){
+    aviso.className = 'aviso erro';
+    aviso.textContent = /NotAllowed|abort/i.test(e.message ?? '')
+      ? 'Registro cancelado. Toque de novo e confirme com a digital ou o PIN do aparelho.'
+      : e.message;
+  }finally{
+    btn.disabled = false; btn.textContent = 'Registrar este celular';
+  }
+});
+
+function apelidoDoAparelho(){
+  const ua = navigator.userAgent;
+  if (/iPhone/.test(ua)) return 'iPhone';
+  if (/iPad/.test(ua))   return 'iPad';
+  if (/Android/.test(ua)) return 'Android';
+  return 'Aparelho';
+}
+
 /* ---------- marcações do dia ---------- */
 async function carregarHoje(){
   const inicio = new Date(); inicio.setHours(0,0,0,0);
@@ -505,10 +566,11 @@ async function carregarHoje(){
 (async () => {
   await sincronizarRelogio().catch(()=>{});
   const { data:{ session } } = await sb.auth.getSession();
-  if (!session){ location.href = './entrar.html'; return; }
+  if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./'); return; }
   const { data: eu } = await sb.schema('ponto').from('empregados').select('nome').maybeSingle();
   if (eu) $('pessoa').textContent = eu.nome;
   await carregarHoje();
+  await conferirAparelho();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 </script>
