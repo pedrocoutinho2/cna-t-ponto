@@ -17,16 +17,16 @@
 body{display:flex; justify-content:center; align-items:stretch;
   min-height:100dvh; padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px)}
 .cartao{width:100%; max-width:440px; margin:14px 0; display:flex; flex-direction:column;
-  background:var(--white); border:1px solid var(--line); border-radius:12px;
-  box-shadow:var(--shadow-2)}
+  background:var(--branco); border:1px solid var(--linha); border-radius:12px;
+  box-shadow:var(--sombra)}
 .topo{padding:20px 22px 0; display:flex; justify-content:space-between; align-items:center; gap:12px}
-.pessoa{font-family:var(--display); font-size:12.5px; font-weight:500; color:var(--gray); text-align:right}
+.pessoa{font-family:var(--display); font-size:12.5px; font-weight:500; color:var(--cinza); text-align:right}
 
 .relogio{padding:22px 22px 4px}
 .hora{font-family:var(--display); font-weight:700; font-size:clamp(54px,17vw,74px);
-  letter-spacing:-.05em; line-height:.9; color:var(--blue); font-variant-numeric:tabular-nums}
-.hora .seg{font-size:.4em; font-weight:500; color:var(--gray); letter-spacing:-.01em}
-.data{font-size:13px; color:var(--gray); margin-top:11px}
+  letter-spacing:-.05em; line-height:.9; color:var(--azul); font-variant-numeric:tabular-nums}
+.hora .seg{font-size:.4em; font-weight:500; color:var(--cinza); letter-spacing:-.01em}
+.data{font-size:13px; color:var(--cinza); margin-top:11px}
 @media (max-height:680px){
   .hora{font-size:clamp(40px,13vw,54px)}
   .relogio{padding:14px 22px 2px}
@@ -34,77 +34,77 @@ body{display:flex; justify-content:center; align-items:stretch;
 }
 
 .janela{margin:18px 22px 0; position:relative; border-radius:8px; overflow:hidden;
-  background:var(--ink); aspect-ratio:4/3; border:1px solid var(--line)}
+  background:var(--tinta); aspect-ratio:4/3; border:1px solid var(--linha)}
 .janela video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
 .janela.oculta{display:none}
 .janela{max-height:46dvh}
 .mira{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
 .mira svg{width:62%; max-width:190px; opacity:.6}
 .instrucao{position:absolute; left:0; right:0; bottom:0; padding:15px 16px;
-  background:linear-gradient(transparent,rgba(26,26,26,.92)); color:var(--white);
+  background:linear-gradient(transparent,rgba(26,26,26,.92)); color:var(--branco);
   font-family:var(--display); font-size:16px; font-weight:600; text-align:center; line-height:1.3}
 .contador{position:absolute; top:11px; right:12px; font-family:var(--display); font-weight:600;
-  font-size:12px; color:var(--white); background:var(--red); padding:3px 9px; border-radius:999px}
+  font-size:12px; color:var(--branco); background:var(--vermelho); padding:3px 9px; border-radius:999px}
 
 .pauta{flex:1; margin:20px 22px 0; min-height:0; overflow:auto}
 .pauta h2{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--gray); padding-bottom:9px; border-bottom:1px solid var(--line)}
+  text-transform:uppercase; color:var(--cinza); padding-bottom:9px; border-bottom:1px solid var(--linha)}
 .batida{display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center;
-  padding:11px 0; border-bottom:1px solid var(--line); font-size:14px}
+  padding:11px 0; border-bottom:1px solid var(--linha); font-size:14px}
 .batida > span:first-child{font-family:var(--display); font-weight:600; font-variant-numeric:tabular-nums}
-.batida .nsr{color:var(--gray); font-size:12px; font-variant-numeric:tabular-nums}
+.batida .nsr{color:var(--cinza); font-size:12px; font-variant-numeric:tabular-nums}
 .batida .sinal{font-family:var(--display); font-size:10.5px; font-weight:600;
   padding:3px 9px; border-radius:999px}
-.sinal.ok{background:var(--pastelBlue); color:var(--blue)}
-.sinal.rev{background:var(--pastelRed); color:var(--redDark)}
-.vazio{padding:24px 0; color:var(--gray); font-size:14px; line-height:1.5}
+.sinal.ok{background:var(--azul-claro); color:var(--azul)}
+.sinal.rev{background:var(--rosa); color:var(--vermelho-escuro)}
+.vazio{padding:24px 0; color:var(--cinza); font-size:14px; line-height:1.5}
 
-.acao{padding:16px 22px 24px; position:sticky; bottom:0; background:var(--white);
-  border-top:1px solid var(--line); border-radius:0 0 12px 12px; z-index:2}
+.acao{padding:16px 22px 24px; position:sticky; bottom:0; background:var(--branco);
+  border-top:1px solid var(--linha); border-radius:0 0 12px 12px; z-index:2}
 .pauta{padding-bottom:8px}
 button.bater{width:100%; border:0; border-radius:8px; cursor:pointer;
-  background:var(--red); color:var(--white); font-family:var(--display);
+  background:var(--vermelho); color:var(--branco); font-family:var(--display);
   font-size:17px; font-weight:600; padding:19px; transition:background .15s, transform .1s}
-button.bater:hover{background:var(--redDark)}
+button.bater:hover{background:var(--vermelho-escuro)}
 button.bater:active{transform:scale(.985)}
-button.bater:disabled{background:var(--line); color:var(--gray); cursor:default}
-button.bater:focus-visible{outline:2px solid var(--blue); outline-offset:3px}
-#registrar-aparelho{background:var(--blue); margin-bottom:9px}
+button.bater:disabled{background:var(--linha); color:var(--cinza); cursor:default}
+button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
+#registrar-aparelho{background:var(--azul); margin-bottom:9px}
 #registrar-aparelho:hover{background:#142F66}
-.aviso{margin-top:12px; font-size:13px; line-height:1.45; color:var(--gray);
+.aviso{margin-top:12px; font-size:13px; line-height:1.45; color:var(--cinza);
   text-align:center; border:0; background:none; padding:0}
-.aviso.erro{color:var(--redDark)}
-.aviso a{color:var(--gray)}
+.aviso.erro{color:var(--vermelho-escuro)}
+.aviso a{color:var(--cinza)}
 
 /* comprovante: o carimbo de conclusão */
 .carimbo{position:fixed; inset:0; background:rgba(247,247,249,.97);
   display:none; place-items:center; padding:20px; z-index:20}
 .carimbo.aberto{display:grid}
-.recibo{width:100%; max-width:350px; background:var(--white); border:1px solid var(--line);
-  border-radius:12px; padding:34px 28px 26px; position:relative; box-shadow:var(--shadow-2);
+.recibo{width:100%; max-width:350px; background:var(--branco); border:1px solid var(--linha);
+  border-radius:12px; padding:34px 28px 26px; position:relative; box-shadow:var(--sombra);
   animation:prensa .5s cubic-bezier(.2,1.5,.4,1) both}
 @keyframes prensa{
   0%{transform:scale(1.5) rotate(-7deg); opacity:0}
   55%{transform:scale(.97) rotate(1.2deg); opacity:1}
   100%{transform:scale(1) rotate(0); opacity:1}}
 .recibo .selo{position:absolute; top:-20px; right:20px; width:78px; height:78px;
-  border:2.5px solid var(--red); border-radius:50%; display:grid; place-items:center;
-  text-align:center; transform:rotate(-13deg); color:var(--red);
+  border:2.5px solid var(--vermelho); border-radius:50%; display:grid; place-items:center;
+  text-align:center; transform:rotate(-13deg); color:var(--vermelho);
   font-family:var(--display); font-size:9px; font-weight:700; letter-spacing:.05em;
-  line-height:1.25; background:var(--white); animation:bate .45s .18s cubic-bezier(.2,1.8,.4,1) both}
+  line-height:1.25; background:var(--branco); animation:bate .45s .18s cubic-bezier(.2,1.8,.4,1) both}
 @keyframes bate{0%{transform:rotate(-13deg) scale(2.2);opacity:0}100%{transform:rotate(-13deg) scale(1);opacity:1}}
 .recibo h3{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--gray)}
+  text-transform:uppercase; color:var(--cinza)}
 .recibo .marca-hora{font-family:var(--display); font-size:42px; font-weight:700;
-  letter-spacing:-.04em; margin:10px 0 3px; color:var(--blue); font-variant-numeric:tabular-nums}
-.recibo dl{margin-top:20px; border-top:1px solid var(--line); padding-top:15px; font-size:13px}
-.recibo dt{font-family:var(--display); color:var(--gray); font-size:9.5px; font-weight:600;
+  letter-spacing:-.04em; margin:10px 0 3px; color:var(--azul); font-variant-numeric:tabular-nums}
+.recibo dl{margin-top:20px; border-top:1px solid var(--linha); padding-top:15px; font-size:13px}
+.recibo dt{font-family:var(--display); color:var(--cinza); font-size:9.5px; font-weight:600;
   letter-spacing:.12em; text-transform:uppercase; margin-top:13px}
 .recibo dd{margin-top:3px; word-break:break-all; line-height:1.45; font-variant-numeric:tabular-nums}
 .recibo .botoes{display:flex; gap:10px; margin-top:22px}
 .recibo .botoes button{flex:1}
-.recibo .revisao{margin-top:15px; padding:12px 14px; border-left:3px solid var(--red);
-  background:var(--pastelRed); border-radius:0 6px 6px 0; font-size:13px; line-height:1.45; color:var(--ink)}
+.recibo .revisao{margin-top:15px; padding:12px 14px; border-left:3px solid var(--vermelho);
+  background:var(--rosa); border-radius:0 6px 6px 0; font-size:13px; line-height:1.45; color:var(--tinta)}
 
 </style>
 </head>
@@ -142,8 +142,8 @@ button.bater:focus-visible{outline:2px solid var(--blue); outline-offset:3px}
     <button class="bater" id="bater">Bater ponto</button>
     <p class="aviso" id="aviso">O horário registrado é o do servidor, não o do aparelho.</p>
     <p class="aviso" style="margin-top:10px;display:flex;gap:16px;justify-content:center">
-      <a href="./admin.html" style="color:var(--gray);padding:6px 4px">Administração</a>
-      <a href="#" id="sair" style="color:var(--gray);padding:6px 4px">Sair</a>
+      <a href="./admin.html" style="color:var(--cinza);padding:6px 4px">Administração</a>
+      <a href="#" id="sair" style="color:var(--cinza);padding:6px 4px">Sair</a>
     </p>
   </footer>
 </main>
@@ -153,7 +153,7 @@ button.bater:focus-visible{outline:2px solid var(--blue); outline-offset:3px}
     <div class="selo" id="selo">REGISTRADO</div>
     <h3 id="rec-titulo">Comprovante de registro de ponto</h3>
     <p class="marca-hora" id="rec-hora">--:--</p>
-    <p style="font-size:13px;color:var(--gray)" id="rec-data"></p>
+    <p style="font-size:13px;color:var(--cinza)" id="rec-data"></p>
     <div id="rec-revisao"></div>
     <dl>
       <dt>NSR</dt><dd id="rec-nsr"></dd>
@@ -414,7 +414,7 @@ function mostrarRecibo(r){
   const selo = $('selo');
   selo.textContent = r.em_revisao ? 'EM REVISÃO' : 'REGISTRADO';
   selo.style.borderColor = selo.style.color =
-    r.em_revisao ? 'var(--red)' : 'var(--blue)';
+    r.em_revisao ? 'var(--vermelho)' : 'var(--azul)';
 
   $('rec-revisao').innerHTML = r.em_revisao
     ? `<p class="revisao">A marcação está gravada e vale para a sua jornada.

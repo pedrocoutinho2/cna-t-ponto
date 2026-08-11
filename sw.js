@@ -6,6 +6,7 @@ const MODELOS = ['tiny_face_detector', 'face_landmark_68', 'face_recognition', '
 const CASCO = [
   './index.html', './manifest.webmanifest',
   './assets/cna.css', './assets/logo-cna.png', './assets/logo-cna-branca.png',
+  './assets/icon-192.png', './assets/icon-512.png',
   // manifesto e pesos: sem o .bin o face-api baixa 7 MB a cada marcação
   ...MODELOS.flatMap((m) => [
     `./models/${m}_model-weights_manifest.json`,
