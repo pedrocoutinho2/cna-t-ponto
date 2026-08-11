@@ -12,52 +12,52 @@
 main{max-width:790px; margin:0 auto; padding:24px}
 h1.titulo{font-size:16px; font-weight:600}
 
-.passo{background:var(--branco); border:1px solid var(--linha); border-radius:var(--raio);
+.passo{background:var(--white); border:1px solid var(--line); border-radius:var(--r-sm);
   margin-bottom:16px; overflow:hidden}
 .passo > h2{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--cinza); padding:15px 20px;
-  border-bottom:1px solid var(--linha); display:flex; gap:11px; align-items:center}
-.passo > h2 .num{width:21px; height:21px; border-radius:50%; background:var(--linha);
-  color:var(--branco); display:grid; place-items:center; font-family:var(--display);
+  text-transform:uppercase; color:var(--gray); padding:15px 20px;
+  border-bottom:1px solid var(--line); display:flex; gap:11px; align-items:center}
+.passo > h2 .num{width:21px; height:21px; border-radius:50%; background:var(--line);
+  color:var(--white); display:grid; place-items:center; font-family:var(--display);
   font-size:11px; font-weight:700}
-.passo.ativo > h2 .num{background:var(--vermelho)}
-.passo.feito > h2 .num{background:var(--azul)}
+.passo.ativo > h2 .num{background:var(--red)}
+.passo.feito > h2 .num{background:var(--blue)}
 .passo .corpo{padding:20px}
 .passo[data-travado] .corpo{opacity:.42; pointer-events:none}
 .passo .corpo > button{margin-right:9px}
 @media (max-width:640px){.passo .corpo > button{width:100%; margin:0 0 9px}
  .camera{max-width:none} .amostra{width:calc(33.33% - 7px); height:70px}}
 
-.termo{max-height:300px; overflow:auto; border:1px solid var(--linha); background:var(--superficie);
+.termo{max-height:300px; overflow:auto; border:1px solid var(--line); background:var(--surface);
   padding:20px; font-size:14px; line-height:1.65; white-space:pre-wrap; border-radius:6px}
-.termo h3{font-family:var(--display); font-size:16px; font-weight:600; margin-bottom:13px; color:var(--vermelho)}
+.termo h3{font-family:var(--display); font-size:16px; font-weight:600; margin-bottom:13px; color:var(--red)}
 .aceite{margin-top:16px; display:flex; gap:12px; align-items:flex-start; padding:14px 16px;
-  border-left:3px solid var(--azul); background:var(--azul-claro); border-radius:0 6px 6px 0}
-.aceite input{margin-top:3px; width:18px; height:18px; accent-color:var(--azul); flex:0 0 auto}
+  border-left:3px solid var(--blue); background:var(--pastelBlue); border-radius:0 6px 6px 0}
+.aceite input{margin-top:3px; width:18px; height:18px; accent-color:var(--blue); flex:0 0 auto}
 .aceite label{font-size:14px; line-height:1.5; cursor:pointer}
 
-.camera{position:relative; background:var(--tinta); aspect-ratio:4/3; max-width:410px;
-  border:1px solid var(--linha); border-radius:8px; overflow:hidden; margin-bottom:16px}
+.camera{position:relative; background:var(--ink); aspect-ratio:4/3; max-width:410px;
+  border:1px solid var(--line); border-radius:8px; overflow:hidden; margin-bottom:16px}
 .camera video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
 .camera .guia{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
-  color:var(--branco); font-family:var(--display); font-size:16px; font-weight:600;
+  color:var(--white); font-family:var(--display); font-size:16px; font-weight:600;
   text-align:center; padding:20px; text-shadow:0 1px 10px rgba(0,0,0,.85)}
 .amostras{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap}
-.amostra{width:82px; height:82px; border:1px solid var(--linha); background:var(--superficie);
+.amostra{width:82px; height:82px; border:1px solid var(--line); background:var(--surface);
   border-radius:8px; display:grid; place-items:center; font-family:var(--display);
-  font-size:11px; font-weight:500; color:var(--cinza); text-align:center; line-height:1.3; padding:6px}
-.amostra.ok{border-color:var(--azul); border-width:2px; background:var(--azul-claro); color:var(--azul)}
+  font-size:11px; font-weight:500; color:var(--gray); text-align:center; line-height:1.3; padding:6px}
+.amostra.ok{border-color:var(--blue); border-width:2px; background:var(--pastelBlue); color:var(--blue)}
 
-.recado{font-size:14px; line-height:1.5; color:var(--cinza); margin-top:12px; min-height:1.4em}
+.recado{font-size:14px; line-height:1.5; color:var(--gray); margin-top:12px; min-height:1.4em}
 #avisos{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;
   flex-direction:column;gap:9px;z-index:60;width:min(440px,calc(100% - 28px))}
-#avisos .recado{background:var(--tinta);color:var(--branco);padding:13px 16px;border-radius:8px;
-  box-shadow:var(--sombra);display:flex;gap:11px;align-items:flex-start;margin:0;min-height:0}
-#avisos .recado.erro{background:var(--vermelho-escuro);color:var(--branco)}
-#avisos .recado.ok{background:var(--azul);color:var(--branco)}
+#avisos .recado{background:var(--ink);color:var(--white);padding:13px 16px;border-radius:8px;
+  box-shadow:var(--shadow-2);display:flex;gap:11px;align-items:flex-start;margin:0;min-height:0}
+#avisos .recado.erro{background:var(--redDark);color:var(--white)}
+#avisos .recado.ok{background:var(--blue);color:var(--white)}
 #avisos .recado button{background:none;border:0;color:inherit;opacity:.7;cursor:pointer;
   font-size:19px;line-height:1;padding:0 2px;margin-left:auto}
-.recado.erro{color:var(--vermelho-escuro)} .recado.bom{color:var(--azul)}
+.recado.erro{color:var(--redDark)} .recado.bom{color:var(--blue)}
 .passo .corpo .nota{margin-top:16px}
 
 @media print{
@@ -475,7 +475,7 @@ $('btn-salvar').onclick = async () => {
   const { data: t } = await P.from('termos').select('*').eq('vigente', true).maybeSingle();
   TERMO = t;
   $('termo').innerHTML = t
-    ? `<h3>${esc(t.titulo)}</h3>${esc(t.texto)}<p style="margin-top:16px;color:var(--cinza);font-family:var(--display);font-size:11px">versão ${esc(t.versao)}</p>`
+    ? `<h3>${esc(t.titulo)}</h3>${esc(t.texto)}<p style="margin-top:16px;color:var(--gray);font-family:var(--display);font-size:11px">versão ${esc(t.versao)}</p>`
     : 'Nenhum termo vigente cadastrado.';
 
   await carregarPessoas();
