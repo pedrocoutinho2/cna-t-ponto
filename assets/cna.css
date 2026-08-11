@@ -1,6 +1,6 @@
 /* =====================================================================
    cna.css — design system CNA Taquara aplicado ao sistema de ponto
-   Fonte: CNA-Taquara-Design-System.md v0.1
+   Fonte: cna-ds.css v1.0 (DESIGN-SYSTEM-SISTEMAS.md)
 
    Três decisões que valem registro:
 
@@ -20,35 +20,28 @@
    ===================================================================== */
 
 :root{
-  /* paleta oficial */
-  --vermelho:#E6143C;
-  --vermelho-escuro:#A30E2A;
-  --azul:#19408B;
-  --branco:#FFFFFF;
-  --tinta:#1A1A1A;
-  --cinza:#5A5A5A;
-  --linha:#E4E4E7;
-  --superficie:#F7F7F9;
-  --verde:#1E7A46;        /* --ok no CRM */
-  --apagado:#8A8A8E;      /* --off no CRM */
-  --linha-perigo:#F1C2CC; /* borda de botão destrutivo, igual ao CRM */
-
-  /* pastéis de apoio */
-  --rosa:#FDECEF;
-  --azul-claro:#EAF0FA;
-  --amarelo:#FFC800;
-
-  --display:'Poppins',system-ui,sans-serif;
-  --corpo:'Inter',system-ui,sans-serif;
-
-  --raio:8px;
-  --sombra:0 1px 2px rgba(26,26,26,.04), 0 12px 32px -22px rgba(26,26,26,.35);
+  /* == CNA-DS v1.0 INICIO - sincronize do cna-ds.css, nao edite a mao == */
+  --red:#E6143C; --redDark:#A30E2A; --blue:#19408B; --blueDark:#142F66;
+  --white:#FFFFFF; --ink:#1A1A1A; --gray:#5A5A5A; --line:#E4E4E7; --surface:#F7F7F9;
+  --pastelRed:#FDECEF; --pastelBlue:#EAF0FA; --yellow:#FFC800;
+  --ok:#1B7A3D; --okBg:#E7F5EC; --warn:#B45309; --warnBg:#FEF3E2;
+  --danger:#A30E2A; --dangerBg:#FDECEF; --dangerLine:#F1C2CC; --muted:#8A8A8E;
+  --onColor:#FFFFFF; --onColorLine:rgba(255,255,255,.28);
+  --onColorHover:rgba(0,0,0,.10); --onColorActive:rgba(0,0,0,.20);
+  --display:'Poppins',system-ui,-apple-system,sans-serif;
+  --body:'Inter',system-ui,-apple-system,sans-serif;
+  --r-sm:8px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:22px; --s6:32px;
+  --shadow-1:0 1px 2px rgba(26,26,26,.04); --shadow-2:0 2px 10px rgba(26,26,26,.06);
+  --shadow-3:0 8px 30px rgba(26,26,26,.08); --shadow-drawer:4px 0 24px rgba(26,26,26,.18);
+  --focus:#19408B;
+  /* == CNA-DS v1.0 FIM == */
 }
 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{
-  background:var(--superficie); color:var(--tinta);
-  font-family:var(--corpo); font-size:15px; line-height:1.5;
+  background:var(--surface); color:var(--ink);
+  font-family:var(--body); font-size:15px; line-height:1.5;
   -webkit-font-smoothing:antialiased;
 }
 h1,h2,h3,.display{font-family:var(--display); letter-spacing:-.01em}
@@ -60,7 +53,7 @@ h1,h2,h3,.display{font-family:var(--display); letter-spacing:-.01em}
 .marca{display:flex; align-items:center; gap:11px}
 .marca img{height:30px; width:auto; display:block}
 .marca .lockup{display:none; font-family:var(--display); font-weight:700; font-size:19px; letter-spacing:-.02em}
-.marca .lockup b{color:var(--vermelho)} .marca .lockup i{color:var(--azul); font-style:normal; font-weight:600}
+.marca .lockup b{color:var(--red)} .marca .lockup i{color:var(--blue); font-style:normal; font-weight:600}
 .marca img[data-falhou]{display:none}
 .marca img[data-falhou] + .lockup{display:block}
 
@@ -71,26 +64,26 @@ h1,h2,h3,.display{font-family:var(--display); letter-spacing:-.01em}
 .sobre-cor .marca .colorida{display:none}
 .sobre-cor .marca .branca{display:block}
 .sobre-cor .marca .unidade{color:rgba(255,255,255,.85); border-left-color:rgba(255,255,255,.3)}
-.sobre-cor .marca .lockup b,.sobre-cor .marca .lockup i{color:var(--branco)}
+.sobre-cor .marca .lockup b,.sobre-cor .marca .lockup i{color:var(--white)}
 .marca .unidade{
   font-family:var(--display); font-size:10.5px; font-weight:500;
-  letter-spacing:.14em; text-transform:uppercase; color:var(--cinza);
-  padding-left:11px; border-left:1px solid var(--linha);
+  letter-spacing:.14em; text-transform:uppercase; color:var(--gray);
+  padding-left:11px; border-left:1px solid var(--line);
 }
 
 /* ---------- cabeçalho ---------- */
 /* Mesmo cabeçalho do CRM: faixa vermelha de 3px, fundo branco, grudado
    no topo. É o que faz os dois sistemas se reconhecerem à primeira vista. */
 header.topo{
-  background:var(--branco); border-bottom:3px solid var(--vermelho);
+  background:var(--white); border-bottom:3px solid var(--red);
   padding:12px 22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
   position:sticky; top:0; z-index:30;
 }
 
 /* ---------- navegação por abas (padrão CRM) ---------- */
 nav.abas{
-  display:flex; margin-left:auto; background:var(--superficie);
-  border:1px solid var(--linha); border-radius:999px; padding:3px; gap:3px;
+  display:flex; margin-left:auto; background:var(--surface);
+  border:1px solid var(--line); border-radius:999px; padding:3px; gap:3px;
   max-width:100%; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
   -webkit-overflow-scrolling:touch;
 }
@@ -98,39 +91,39 @@ nav.abas::-webkit-scrollbar{display:none}
 nav.abas button, nav.abas a{
   border:none; background:transparent; cursor:pointer; text-decoration:none;
   padding:7px 20px; border-radius:999px; font-family:var(--display);
-  font-weight:600; font-size:13px; color:var(--cinza);
+  font-weight:600; font-size:13px; color:var(--gray);
   flex:0 0 auto; white-space:nowrap; transition:background .15s, color .15s;
 }
-nav.abas button:hover, nav.abas a:hover{color:var(--tinta)}
-nav.abas button[aria-selected=true]{background:var(--vermelho); color:var(--branco)}
+nav.abas button:hover, nav.abas a:hover{color:var(--ink)}
+nav.abas button[aria-selected=true]{background:var(--red); color:var(--white)}
 nav.abas button:focus-visible, nav.abas a:focus-visible{
-  outline:2px solid var(--azul); outline-offset:2px;
+  outline:2px solid var(--blue); outline-offset:2px;
 }
-nav.abas #sair{color:var(--vermelho-escuro)}
+nav.abas #sair{color:var(--redDark)}
 
 /* ---------- superfícies ---------- */
 .cartao{
-  background:var(--branco); border:1px solid var(--linha);
-  border-radius:var(--raio); box-shadow:var(--sombra);
+  background:var(--white); border:1px solid var(--line);
+  border-radius:var(--r-sm); box-shadow:var(--shadow-2);
 }
 .rotulo{
   font-family:var(--display); font-size:10px; font-weight:600;
-  letter-spacing:.14em; text-transform:uppercase; color:var(--cinza);
+  letter-spacing:.14em; text-transform:uppercase; color:var(--gray);
 }
 
 /* ---------- formulários ---------- */
 label.campo{display:block; margin-bottom:14px}
 label.campo > span{
   display:block; font-family:var(--display); font-size:10px; font-weight:600;
-  letter-spacing:.12em; text-transform:uppercase; color:var(--cinza); margin-bottom:6px;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--gray); margin-bottom:6px;
 }
 input,select,textarea{
-  width:100%; font-family:var(--corpo); font-size:15px; color:var(--tinta);
-  padding:11px 12px; border:1px solid var(--linha); background:var(--branco);
+  width:100%; font-family:var(--body); font-size:15px; color:var(--ink);
+  padding:11px 12px; border:1px solid var(--line); background:var(--white);
   border-radius:6px; transition:border-color .15s, box-shadow .15s;
 }
 input:focus,select:focus,textarea:focus{
-  outline:0; border-color:var(--azul); box-shadow:0 0 0 3px var(--azul-claro);
+  outline:0; border-color:var(--blue); box-shadow:0 0 0 3px var(--pastelBlue);
 }
 textarea{min-height:74px; resize:vertical; line-height:1.5}
 
@@ -139,83 +132,83 @@ textarea{min-height:74px; resize:vertical; line-height:1.5}
    valendo como apelido para o código já escrito aqui, e produzem
    exatamente o mesmo resultado. */
 .btn, button.leve, button.acao{
-  border:1px solid var(--linha); background:var(--branco); border-radius:10px;
+  border:1px solid var(--line); background:var(--white); border-radius:10px;
   padding:9px 14px; font-family:var(--display); font-weight:600; font-size:13px;
-  color:var(--tinta); cursor:pointer; transition:background .15s, border-color .15s;
+  color:var(--ink); cursor:pointer; transition:background .15s, border-color .15s;
 }
-.btn:hover, button.leve:hover{border-color:var(--cinza)}
+.btn:hover, button.leve:hover{border-color:var(--gray)}
 .btn.primary, button.acao{
-  background:var(--vermelho); border-color:var(--vermelho); color:var(--branco);
+  background:var(--red); border-color:var(--red); color:var(--white);
 }
-.btn.primary:hover, button.acao:hover{background:var(--vermelho-escuro); border-color:var(--vermelho-escuro)}
-.btn.danger{color:var(--vermelho-escuro); border-color:var(--linha-perigo)}
-.btn.danger:hover{background:var(--rosa)}
-.btn.danger.confirm{background:var(--vermelho-escuro); border-color:var(--vermelho-escuro); color:var(--branco)}
-.btn.azul, button.azul{background:var(--azul); border-color:var(--azul); color:var(--branco)}
+.btn.primary:hover, button.acao:hover{background:var(--redDark); border-color:var(--redDark)}
+.btn.danger{color:var(--redDark); border-color:var(--dangerLine)}
+.btn.danger:hover{background:var(--pastelRed)}
+.btn.danger.confirm{background:var(--redDark); border-color:var(--redDark); color:var(--white)}
+.btn.azul, button.azul{background:var(--blue); border-color:var(--blue); color:var(--white)}
 .btn.azul:hover, button.azul:hover{background:#142F66; border-color:#142F66}
 .btn:disabled, button.acao:disabled, button.leve:disabled{
-  opacity:.45; cursor:not-allowed; background:var(--branco);
-  border-color:var(--linha); color:var(--cinza);
+  opacity:.45; cursor:not-allowed; background:var(--white);
+  border-color:var(--line); color:var(--gray);
 }
-button.acao:disabled{background:var(--linha); border-color:var(--linha)}
+button.acao:disabled{background:var(--line); border-color:var(--line)}
 .btn:focus-visible, button.acao:focus-visible, button.leve:focus-visible{
-  outline:2px solid var(--azul); outline-offset:2px;
+  outline:2px solid var(--blue); outline-offset:2px;
 }
 
 /* ---------- tabelas ---------- */
 table{
-  width:100%; border-collapse:collapse; background:var(--branco);
-  border:1px solid var(--linha); border-radius:var(--raio); overflow:hidden;
+  width:100%; border-collapse:collapse; background:var(--white);
+  border:1px solid var(--line); border-radius:var(--r-sm); overflow:hidden;
 }
 caption{
   text-align:left; padding:15px 16px; font-family:var(--display);
   font-size:10px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--cinza); border-bottom:1px solid var(--linha); background:var(--branco);
+  color:var(--gray); border-bottom:1px solid var(--line); background:var(--white);
 }
 thead th{
-  background:var(--azul); color:var(--branco);
+  background:var(--blue); color:var(--white);
   font-family:var(--display); font-size:10.5px; font-weight:600;
   letter-spacing:.06em; text-transform:uppercase; text-align:left;
   padding:10px 12px; white-space:nowrap;
 }
-td{padding:11px 12px; border-bottom:1px solid var(--linha); vertical-align:top; font-size:14px}
-tbody tr:nth-child(even) td{background:var(--superficie)}
+td{padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14px}
+tbody tr:nth-child(even) td{background:var(--surface)}
 tbody tr:last-child td{border-bottom:0}
 td.n,th.n{text-align:right}
-.pos{color:var(--azul); font-weight:600}
-.neg{color:var(--vermelho-escuro); font-weight:600}
-.mudo{color:var(--cinza)}
+.pos{color:var(--blue); font-weight:600}
+.neg{color:var(--redDark); font-weight:600}
+.mudo{color:var(--gray)}
 
 /* ---------- etiquetas ---------- */
 .tag{
   display:inline-block; font-family:var(--display); font-size:10.5px; font-weight:600;
   letter-spacing:.03em; padding:3px 9px; border-radius:999px; white-space:nowrap;
 }
-.tag.ok{background:var(--azul-claro); color:var(--azul)}
-.tag.alerta{background:var(--rosa); color:var(--vermelho-escuro)}
-.tag.neutra{background:var(--superficie); color:var(--cinza)}
+.tag.ok{background:var(--pastelBlue); color:var(--blue)}
+.tag.alerta{background:var(--pastelRed); color:var(--redDark)}
+.tag.neutra{background:var(--surface); color:var(--gray)}
 
 /* ---------- avisos ---------- */
 .aviso{
-  border-left:3px solid var(--vermelho); background:var(--rosa);
+  border-left:3px solid var(--red); background:var(--pastelRed);
   padding:13px 15px; border-radius:0 6px 6px 0; font-size:14px; line-height:1.5;
 }
-.aviso.info{border-left-color:var(--azul); background:var(--azul-claro)}
+.aviso.info{border-left-color:var(--blue); background:var(--pastelBlue)}
 .nota{
-  font-size:13px; line-height:1.55; color:var(--cinza);
-  border-left:2px solid var(--linha); padding-left:13px;
+  font-size:13px; line-height:1.55; color:var(--gray);
+  border-left:2px solid var(--line); padding-left:13px;
 }
 
 /* ---------- indicadores ---------- */
 .indicadores{display:grid; grid-template-columns:repeat(auto-fit,minmax(158px,1fr)); gap:12px}
-.ind{background:var(--branco); border:1px solid var(--linha); border-radius:var(--raio); padding:16px}
+.ind{background:var(--white); border:1px solid var(--line); border-radius:var(--r-sm); padding:16px}
 .ind dt{
   font-family:var(--display); font-size:10px; font-weight:600;
-  letter-spacing:.12em; text-transform:uppercase; color:var(--cinza);
+  letter-spacing:.12em; text-transform:uppercase; color:var(--gray);
 }
 .ind dd{
   font-family:var(--display); font-size:28px; font-weight:700;
-  letter-spacing:-.03em; margin-top:7px; color:var(--azul);
+  letter-spacing:-.03em; margin-top:7px; color:var(--blue);
   font-variant-numeric:tabular-nums;
 }
 .ind .nota{font-size:12.5px; margin-top:4px; border:0; padding:0}
@@ -256,8 +249,8 @@ td.n,th.n{text-align:right}
   table.responsiva{border:0; background:none}
   table.responsiva caption{border:0; padding:0 0 11px}
   table.responsiva tr{
-    background:var(--branco); border:1px solid var(--linha);
-    border-radius:var(--raio); margin-bottom:11px; padding:6px 2px;
+    background:var(--white); border:1px solid var(--line);
+    border-radius:var(--r-sm); margin-bottom:11px; padding:6px 2px;
   }
   table.responsiva tbody tr:nth-child(even) td{background:transparent}
   table.responsiva td{
@@ -267,12 +260,12 @@ td.n,th.n{text-align:right}
   table.responsiva td::before{
     content:attr(data-rotulo); font-family:var(--display); font-size:10px;
     font-weight:600; letter-spacing:.1em; text-transform:uppercase;
-    color:var(--cinza); text-align:left; flex:0 0 auto;
+    color:var(--gray); text-align:left; flex:0 0 auto;
   }
   table.responsiva td:empty{display:none}
   table.responsiva td[data-rotulo=""]{justify-content:flex-end}
   table.responsiva td.destaque{
-    background:var(--superficie); border-bottom:1px solid var(--linha);
+    background:var(--surface); border-bottom:1px solid var(--line);
     font-family:var(--display); font-weight:600; font-size:15px;
   }
 
@@ -283,8 +276,8 @@ td.n,th.n{text-align:right}
     max-height:92dvh; overflow-y:auto;
   }
   dialog .rodape{
-    position:sticky; bottom:0; background:var(--branco);
-    border-top:1px solid var(--linha); padding:14px 20px calc(14px + env(safe-area-inset-bottom));
+    position:sticky; bottom:0; background:var(--white);
+    border-top:1px solid var(--line); padding:14px 20px calc(14px + env(safe-area-inset-bottom));
   }
   dialog .rodape button{flex:1}
   .indicadores{grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:9px}
@@ -306,10 +299,10 @@ td.n,th.n{text-align:right}
 
 .hamburguer{
   display:none; background:none; border:0; cursor:pointer; padding:9px;
-  margin:-9px -4px -9px -9px; border-radius:8px; color:var(--tinta);
+  margin:-9px -4px -9px -9px; border-radius:8px; color:var(--ink);
   line-height:0; flex:0 0 auto;
 }
-.hamburguer:focus-visible{outline:2px solid var(--azul); outline-offset:1px}
+.hamburguer:focus-visible{outline:2px solid var(--blue); outline-offset:1px}
 .hamburguer svg{width:23px; height:23px; display:block}
 
 .veu{
@@ -329,9 +322,9 @@ td.n,th.n{text-align:right}
   header.topo .marca{flex:0 0 auto}
 
   nav.abas{
-    border-radius:0; padding:0; background:var(--branco); overflow-x:visible;
+    border-radius:0; padding:0; background:var(--white); overflow-x:visible;
     position:fixed; top:0; left:0; bottom:0; width:min(82vw,320px);
-    margin:0; background:var(--branco); border-right:1px solid var(--linha);
+    margin:0; background:var(--white); border-right:1px solid var(--line);
     z-index:40; display:flex; flex-direction:column; gap:0;
     padding:calc(16px + env(safe-area-inset-top)) 0 calc(16px + env(safe-area-inset-bottom));
     transform:translateX(-100%); transition:transform .24s cubic-bezier(.3,.8,.4,1);
@@ -342,8 +335,8 @@ td.n,th.n{text-align:right}
 
   nav.abas::before{
     content:'Menu'; font-family:var(--display); font-size:10px; font-weight:600;
-    letter-spacing:.14em; text-transform:uppercase; color:var(--cinza);
-    padding:0 22px 14px; border-bottom:1px solid var(--linha); margin-bottom:8px;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--gray);
+    padding:0 22px 14px; border-bottom:1px solid var(--line); margin-bottom:8px;
   }
 
   /* Item igual ao .dnav button do CRM: pílula arredondada com ponto à
@@ -352,21 +345,28 @@ td.n,th.n{text-align:right}
     width:100%; min-height:52px; display:flex; align-items:center; gap:11px;
     margin:0 10px; width:calc(100% - 20px); padding:13px 12px;
     border-radius:11px; font-size:14.5px; text-align:left;
-    justify-content:flex-start; color:var(--tinta);
+    justify-content:flex-start; color:var(--ink);
   }
   nav.abas button::before, nav.abas a::before{
     content:''; width:8px; height:8px; border-radius:50%;
-    background:var(--linha); flex:none;
+    background:var(--line); flex:none;
   }
-  nav.abas button[aria-selected=true]{background:var(--vermelho); color:var(--branco)}
-  nav.abas button[aria-selected=true]::before{background:var(--branco)}
+  nav.abas button[aria-selected=true]{background:var(--red); color:var(--white)}
+  nav.abas button[aria-selected=true]::before{background:var(--white)}
   /* Separa os atalhos externos das abas do painel. Usa o combinador de
      irmão em vez de :first-of-type porque na tela de cadastro a nav só
      tem links — ali a linha divisória não faria sentido. */
   nav.abas button + a{
-    margin-top:10px; padding-top:16px; border-top:1px solid var(--linha);
+    margin-top:10px; padding-top:16px; border-top:1px solid var(--line);
   }
-  nav.abas #sair{color:var(--vermelho-escuro); margin-top:auto}
+  nav.abas #sair{color:var(--redDark); margin-top:auto}
 
   body.travado{overflow:hidden}
 }
+
+/* ---------- foco visivel (CNA-DS) ---------- */
+:is(a,button,input,select,textarea,[tabindex]):focus-visible{
+  outline:3px solid var(--focus); outline-offset:2px; border-radius:var(--r-sm);
+}
+.sobre-cor :is(a,button):focus-visible{outline-color:var(--onColor)}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
