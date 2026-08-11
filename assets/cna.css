@@ -29,6 +29,9 @@
   --cinza:#5A5A5A;
   --linha:#E4E4E7;
   --superficie:#F7F7F9;
+  --verde:#1E7A46;        /* --ok no CRM */
+  --apagado:#8A8A8E;      /* --off no CRM */
+  --linha-perigo:#F1C2CC; /* borda de botão destrutivo, igual ao CRM */
 
   /* pastéis de apoio */
   --rosa:#FDECEF;
@@ -76,27 +79,34 @@ h1,h2,h3,.display{font-family:var(--display); letter-spacing:-.01em}
 }
 
 /* ---------- cabeçalho ---------- */
+/* Mesmo cabeçalho do CRM: faixa vermelha de 3px, fundo branco, grudado
+   no topo. É o que faz os dois sistemas se reconhecerem à primeira vista. */
 header.topo{
-  background:var(--branco); border-bottom:1px solid var(--linha);
-  padding:13px 22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
-  position:sticky; top:0; z-index:10;
+  background:var(--branco); border-bottom:3px solid var(--vermelho);
+  padding:12px 22px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  position:sticky; top:0; z-index:30;
 }
 
-/* ---------- navegação por abas ---------- */
-nav.abas{display:flex; gap:3px; margin-left:auto; flex-wrap:wrap}
+/* ---------- navegação por abas (padrão CRM) ---------- */
+nav.abas{
+  display:flex; margin-left:auto; background:var(--superficie);
+  border:1px solid var(--linha); border-radius:999px; padding:3px; gap:3px;
+  max-width:100%; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none;
+  -webkit-overflow-scrolling:touch;
+}
+nav.abas::-webkit-scrollbar{display:none}
 nav.abas button, nav.abas a{
-  background:transparent; border:0; color:var(--cinza); cursor:pointer;
-  font-family:var(--display); font-size:13.5px; font-weight:500;
-  padding:8px 13px; border-radius:6px; text-decoration:none;
-  border-bottom:2px solid transparent; transition:color .15s, border-color .15s;
+  border:none; background:transparent; cursor:pointer; text-decoration:none;
+  padding:7px 20px; border-radius:999px; font-family:var(--display);
+  font-weight:600; font-size:13px; color:var(--cinza);
+  flex:0 0 auto; white-space:nowrap; transition:background .15s, color .15s;
 }
 nav.abas button:hover, nav.abas a:hover{color:var(--tinta)}
-nav.abas button[aria-selected=true]{
-  color:var(--vermelho); border-bottom-color:var(--vermelho); font-weight:600;
-}
+nav.abas button[aria-selected=true]{background:var(--vermelho); color:var(--branco)}
 nav.abas button:focus-visible, nav.abas a:focus-visible{
   outline:2px solid var(--azul); outline-offset:2px;
 }
+nav.abas #sair{color:var(--vermelho-escuro)}
 
 /* ---------- superfícies ---------- */
 .cartao{
@@ -124,25 +134,33 @@ input:focus,select:focus,textarea:focus{
 }
 textarea{min-height:74px; resize:vertical; line-height:1.5}
 
-/* ---------- botões ---------- */
-button.acao{
-  border:0; border-radius:6px; cursor:pointer;
-  background:var(--vermelho); color:var(--branco);
-  font-family:var(--display); font-size:15px; font-weight:600;
-  padding:12px 22px; transition:background .15s, transform .1s;
+/* ---------- botões (padrão CRM) ----------
+   `.btn` é o nome canônico, igual ao CRM. `.acao` e `.leve` continuam
+   valendo como apelido para o código já escrito aqui, e produzem
+   exatamente o mesmo resultado. */
+.btn, button.leve, button.acao{
+  border:1px solid var(--linha); background:var(--branco); border-radius:10px;
+  padding:9px 14px; font-family:var(--display); font-weight:600; font-size:13px;
+  color:var(--tinta); cursor:pointer; transition:background .15s, border-color .15s;
 }
-button.acao:hover{background:var(--vermelho-escuro)}
-button.acao:active{transform:scale(.985)}
-button.acao:disabled{background:var(--linha); color:var(--cinza); cursor:default}
-button.acao:focus-visible{outline:2px solid var(--azul); outline-offset:2px}
-
-button.leve{
-  background:var(--branco); color:var(--tinta); border:1px solid var(--linha);
-  border-radius:6px; cursor:pointer; font-family:var(--display);
-  font-size:14px; font-weight:500; padding:11px 18px;
+.btn:hover, button.leve:hover{border-color:var(--cinza)}
+.btn.primary, button.acao{
+  background:var(--vermelho); border-color:var(--vermelho); color:var(--branco);
 }
-button.leve:hover{border-color:var(--cinza)}
-button.azul{background:var(--azul)} button.azul:hover{background:#142F66}
+.btn.primary:hover, button.acao:hover{background:var(--vermelho-escuro); border-color:var(--vermelho-escuro)}
+.btn.danger{color:var(--vermelho-escuro); border-color:var(--linha-perigo)}
+.btn.danger:hover{background:var(--rosa)}
+.btn.danger.confirm{background:var(--vermelho-escuro); border-color:var(--vermelho-escuro); color:var(--branco)}
+.btn.azul, button.azul{background:var(--azul); border-color:var(--azul); color:var(--branco)}
+.btn.azul:hover, button.azul:hover{background:#142F66; border-color:#142F66}
+.btn:disabled, button.acao:disabled, button.leve:disabled{
+  opacity:.45; cursor:not-allowed; background:var(--branco);
+  border-color:var(--linha); color:var(--cinza);
+}
+button.acao:disabled{background:var(--linha); border-color:var(--linha)}
+.btn:focus-visible, button.acao:focus-visible, button.leve:focus-visible{
+  outline:2px solid var(--azul); outline-offset:2px;
+}
 
 /* ---------- tabelas ---------- */
 table{
@@ -304,13 +322,14 @@ td.n,th.n{text-align:right}
 @media (max-width:860px){
   .hamburguer{display:block}
 
-  header.topo{gap:12px; flex-wrap:nowrap}
+  header.topo{gap:12px; flex-wrap:nowrap; padding:9px 12px}
   header.topo h1.titulo{
     font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
   header.topo .marca{flex:0 0 auto}
 
   nav.abas{
+    border-radius:0; padding:0; background:var(--branco); overflow-x:visible;
     position:fixed; top:0; left:0; bottom:0; width:min(82vw,320px);
     margin:0; background:var(--branco); border-right:1px solid var(--linha);
     z-index:40; display:flex; flex-direction:column; gap:0;
@@ -327,16 +346,20 @@ td.n,th.n{text-align:right}
     padding:0 22px 14px; border-bottom:1px solid var(--linha); margin-bottom:8px;
   }
 
+  /* Item igual ao .dnav button do CRM: pílula arredondada com ponto à
+     esquerda, preenchida de vermelho quando ativa. */
   nav.abas button, nav.abas a{
-    width:100%; min-height:52px; display:flex; align-items:center;
-    padding:0 22px; border-radius:0; border-bottom:0; font-size:16px;
-    text-align:left; justify-content:flex-start; color:var(--tinta);
-    border-left:3px solid transparent;
+    width:100%; min-height:52px; display:flex; align-items:center; gap:11px;
+    margin:0 10px; width:calc(100% - 20px); padding:13px 12px;
+    border-radius:11px; font-size:14.5px; text-align:left;
+    justify-content:flex-start; color:var(--tinta);
   }
-  nav.abas button[aria-selected=true]{
-    color:var(--vermelho); border-left-color:var(--vermelho);
-    background:var(--rosa); border-bottom-color:transparent;
+  nav.abas button::before, nav.abas a::before{
+    content:''; width:8px; height:8px; border-radius:50%;
+    background:var(--linha); flex:none;
   }
+  nav.abas button[aria-selected=true]{background:var(--vermelho); color:var(--branco)}
+  nav.abas button[aria-selected=true]::before{background:var(--branco)}
   /* Separa os atalhos externos das abas do painel. Usa o combinador de
      irmão em vez de :first-of-type porque na tela de cadastro a nav só
      tem links — ali a linha divisória não faria sentido. */

@@ -593,7 +593,7 @@ async function carregarEquipe(){
         : `<span class="tag neutra">desligado ${e.demissao ? dia(e.demissao) : ''}</span>`}</td>
       <td data-rotulo=""><div class="acoes-linha">
         <button class="leve" data-editar="${e.id}">Editar</button>
-        ${e.ativo ? `<button class="leve" data-desligar="${e.id}">Desligar</button>`
+        ${e.ativo ? `<button class="btn danger" data-desligar="${e.id}">Desligar</button>`
                   : `<button class="leve" data-reativar="${e.id}">Reativar</button>`}
       </div></td>
     </tr>`).join('')
@@ -820,7 +820,7 @@ async function listarAjustesDoDia(){
         <strong style="font-size:13.5px">${esc(a.tipo)}</strong>${a.horario ? ` · ${hora(a.horario)}` : a.minutos ? ` · ${hm(a.minutos)}` : ''}
         <div class="mudo" style="font-size:12.5px;margin-top:2px">${esc(a.justificativa)}</div>
       </div>
-      <button class="leve" data-cancelar="${a.id}" style="padding:6px 11px;font-size:12.5px;min-height:0">Cancelar</button>
+      <button class="btn danger" data-cancelar="${a.id}" style="padding:6px 11px;font-size:12.5px;min-height:0">Cancelar</button>
     </div>`).join('')}<div style="height:16px"></div>` : '';
 }
 $('ajustes-do-dia').onclick = async (ev) => {
@@ -1072,7 +1072,7 @@ async function carregarConfig(){
     <td data-rotulo="Última marcação">${d.ultima_marcacao ? dia(d.ultima_marcacao.slice(0,10)) : '<span class="mudo">nunca</span>'}</td>
     <td data-rotulo="Situação">${d.ativo ? '<span class="tag ok">ativo</span>' : '<span class="tag neutra">revogado</span>'}</td>
     <td data-rotulo=""><div class="acoes-linha">${d.ativo
-      ? `<button class="leve" data-revogar="${d.id}">Revogar</button>` : ''}</div></td>
+      ? `<button class="btn danger" data-revogar="${d.id}">Revogar</button>` : ''}</div></td>
   </tr>`).join('') : '<tr><td colspan="6" class="vazio">Nenhum aparelho registrado ainda.</td></tr>';
 
   const ano = $('f-ano').value || new Date().getFullYear();
@@ -1082,7 +1082,7 @@ async function carregarConfig(){
     <td class="destaque" data-rotulo="">${dia(f.data)} <span class="mudo">${DOW[new Date(f.data+'T12:00').getDay()]}</span></td>
     <td data-rotulo="Nome">${esc(f.nome)}</td>
     <td data-rotulo="Tipo"><span class="tag neutra">${esc(f.tipo)}</span></td>
-    <td data-rotulo=""><div class="acoes-linha"><button class="leve" data-delferiado="${f.data}">Remover</button></div></td>
+    <td data-rotulo=""><div class="acoes-linha"><button class="btn danger" data-delferiado="${f.data}">Remover</button></div></td>
   </tr>`).join('') : `<tr><td colspan="4" class="vazio">Nenhum feriado cadastrado em ${ano}.</td></tr>`;
 
   const { data: jd } = await P.from('jornada_dias')
@@ -1112,7 +1112,7 @@ async function carregarConfig(){
     <td class="mudo" data-rotulo="Observação">${esc(a.observacao) || '—'}</td>
     <td data-rotulo=""><div class="acoes-linha">${a.email === EU?.email
       ? '<span class="mudo" style="font-size:12.5px">você</span>'
-      : `<button class="leve" data-delacesso="${esc(a.email)}">Remover</button>`}</div></td>
+      : `<button class="btn danger" data-delacesso="${esc(a.email)}">Remover</button>`}</div></td>
   </tr>`).join('') : '<tr><td colspan="4" class="vazio">Nenhum acesso administrativo cadastrado.</td></tr>';
 }
 $('f-ano').onchange = carregarConfig;
