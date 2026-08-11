@@ -3,22 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ponto · Administração — CNA Taquara</title>
+<meta name="theme-color" content="#FFFFFF">
+<title>Administração · Ponto CNA Taquara</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./assets/cna.css">
 <style>
-
 main{max-width:1260px; margin:0 auto; padding:24px}
 .painel[hidden]{display:none}
 h1.titulo{font-size:16px; font-weight:600}
 .filtros{display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:20px}
 .filtros label.campo{margin-bottom:0}
 .filtros input,.filtros select{width:auto; min-width:150px}
+.empurra{margin-left:auto}
 #e-indicadores{margin-bottom:20px}
 tr.fds td{background:var(--superficie); color:var(--cinza)}
 tr.problema td:first-child{box-shadow:inset 3px 0 0 var(--vermelho)}
+tr.inativo td{opacity:.62}
 .vazio{padding:34px 14px; color:var(--cinza); text-align:center; line-height:1.55}
+h2.secao{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--cinza); margin:30px 0 12px}
+.acoes-linha{display:flex; gap:7px; justify-content:flex-end; flex-wrap:wrap}
+.acoes-linha button{padding:7px 13px; font-size:13px; min-height:0}
 
 .semana{display:grid; grid-template-columns:170px repeat(6,1fr); gap:4px; align-items:center}
 .semana .cab{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.1em;
@@ -27,39 +33,60 @@ tr.problema td:first-child{box-shadow:inset 3px 0 0 var(--vermelho)}
 .cel{height:40px; display:grid; place-items:center; font-family:var(--display); font-weight:500;
   font-size:13px; border:1px solid var(--linha); background:var(--branco); border-radius:6px;
   font-variant-numeric:tabular-nums}
-h2.secao{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--cinza); margin:30px 0 12px}
 
 dialog{border:1px solid var(--linha); background:var(--branco); padding:0; border-radius:12px;
-  max-width:460px; width:calc(100% - 32px); color:var(--tinta); box-shadow:var(--sombra)}
+  max-width:480px; width:calc(100% - 32px); color:var(--tinta); box-shadow:var(--sombra)}
 dialog::backdrop{background:rgba(26,26,26,.45)}
 dialog h2{font-size:19px; font-weight:600; padding:22px 24px 0}
 dialog .corpo{padding:18px 24px}
 dialog .rodape{padding:16px 24px 22px; display:flex; gap:10px; justify-content:flex-end}
 dialog .nota{margin-top:14px}
+dialog p.erro{color:var(--vermelho-escuro); font-size:13.5px; margin-top:12px; min-height:1.2em}
 
+/* Recado no rodapé em vez de alert(): alert trava a aba inteira e alguns
+   navegadores o bloqueiam quando disparado de dentro de um <dialog>. */
+#avisos{position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
+  display:flex; flex-direction:column; gap:9px; z-index:60; width:min(440px,calc(100% - 28px))}
+.recado{background:var(--tinta); color:var(--branco); padding:13px 16px; border-radius:8px;
+  font-size:14px; line-height:1.45; box-shadow:var(--sombra); display:flex; gap:11px;
+  align-items:flex-start; animation:sobe .22s ease both}
+.recado.erro{background:var(--vermelho-escuro)}
+.recado.ok{background:var(--azul)}
+.recado button{background:none; border:0; color:inherit; opacity:.7; cursor:pointer;
+  font-size:19px; line-height:1; padding:0 2px; margin-left:auto}
+@keyframes sobe{from{opacity:0; transform:translateY(11px)}to{opacity:1; transform:none}}
+
+.grade2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
 @media (max-width:760px){
   main{padding:14px}
-  table{display:block; overflow-x:auto; white-space:nowrap}
   .semana{grid-template-columns:120px repeat(6,1fr); font-size:12px}
+  .grade2{grid-template-columns:1fr}
+  .empurra{margin-left:0}
+  .acoes-linha{justify-content:flex-start}
 }
-
 </style>
 </head>
 <body>
 
 <header class="topo">
-  <div class="marca"><img class="colorida" src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><img class="branca" src="./assets/logo-cna-branca.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><span class="lockup"><b>CNA</b> <i>idiomas</i></span><span class="unidade">Taquara</span></div>
+  <div class="marca">
+    <img class="colorida" src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1">
+    <img class="branca" src="./assets/logo-cna-branca.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1">
+    <span class="lockup"><b>CNA</b> <i>idiomas</i></span>
+    <span class="unidade">Taquara</span>
+  </div>
   <h1 class="titulo">Administração do ponto</h1>
   <nav class="abas" role="tablist">
     <button role="tab" data-aba="equipe"     aria-selected="true">Equipe</button>
     <button role="tab" data-aba="espelho"    aria-selected="false">Espelho</button>
-    <button role="tab" data-aba="banco"      aria-selected="false">Banco de horas</button>
+    <button role="tab" data-aba="banco"      aria-selected="false">Banco</button>
     <button role="tab" data-aba="pendencias" aria-selected="false">Pendências</button>
     <button role="tab" data-aba="relatorios" aria-selected="false">Relatórios</button>
-  </nav>
-    <a href="./cadastro.html">Cadastro biométrico</a>
+    <button role="tab" data-aba="config"     aria-selected="false">Configurações</button>
+    <a href="./cadastro.html">Biometria</a>
     <a href="./">Bater ponto</a>
+    <button id="sair">Sair</button>
+  </nav>
 </header>
 
 <main>
@@ -67,14 +94,14 @@ dialog .nota{margin-top:14px}
 <!-- ============ EQUIPE ============ -->
 <section class="painel" id="p-equipe">
   <div class="filtros">
-    <label class="campo"><span>Buscar</span><input type="text" id="q-equipe" placeholder="nome ou cargo"></label>
+    <label class="campo"><span>Buscar</span><input type="text" id="q-equipe" placeholder="nome, cargo ou e-mail"></label>
     <label class="campo"><span>Situação</span>
       <select id="f-situacao"><option value="ativo">Ativos</option><option value="todos">Todos</option><option value="inativo">Desligados</option></select>
     </label>
-    <button class="acao" id="btn-novo" style="margin-left:auto">Cadastrar pessoa</button>
+    <button class="acao empurra" id="btn-novo">Cadastrar pessoa</button>
   </div>
   <table class="responsiva">
-    <caption>Equipe cadastrada</caption>
+    <caption id="cap-equipe">Equipe</caption>
     <thead><tr>
       <th>Nome</th><th>Turno</th><th>E-mail</th><th>Acesso</th>
       <th>Admissão</th><th class="n">Banco</th><th>Situação</th><th></th>
@@ -107,19 +134,17 @@ dialog .nota{margin-top:14px}
 <section class="painel" id="p-banco" hidden>
   <div class="aviso info" id="banco-aviso" style="margin-bottom:18px"></div>
   <div class="filtros">
-    <label class="campo"><span>Pessoa</span><select id="b-pessoa"><option value="">Todas</option></select></label>
-    <label class="campo"><span>De</span><input type="date" id="b-ini"></label>
-    <label class="campo"><span>Até</span><input type="date" id="b-fim"></label>
+    <label class="campo"><span>Saldo até</span><input type="date" id="b-fim"></label>
   </div>
-  <table class="responsiva" id="tb-banco">
+  <table class="responsiva">
     <caption>Saldo por pessoa</caption>
     <thead><tr><th>Nome</th><th class="n">Saldo</th><th>Situação</th><th class="n">Prazo</th></tr></thead>
     <tbody id="t-banco"></tbody>
   </table>
   <div style="height:18px"></div>
   <table class="responsiva" id="tb-extrato" hidden>
-    <caption>Extrato</caption>
-    <thead><tr><th>Data</th><th>Origem</th><th class="n">Lançamento</th><th class="n">Acumulado</th><th>Observação</th></tr></thead>
+    <caption id="cap-extrato">Extrato</caption>
+    <thead><tr><th>Data</th><th>Origem</th><th class="n">Lançamento</th><th class="n">Acumulado</th></tr></thead>
     <tbody id="t-extrato"></tbody>
   </table>
 </section>
@@ -159,59 +184,102 @@ dialog .nota{margin-top:14px}
     <tbody id="t-resumo"></tbody>
   </table>
 
-  <h2 class="secao">
-    Atraso por dia da semana
-  </h2>
-  <p class="mudo" style="margin-bottom:14px;max-width:66ch;border:0;padding:0">
+  <h2 class="secao">Atraso por dia da semana</h2>
+  <p class="nota" style="margin-bottom:14px;max-width:66ch;border:0;padding:0">
     Cada célula mostra quantas vezes a pessoa chegou atrasada naquele dia, sobre quantos
     dias ela deveria ter trabalhado. Atraso espalhado é acidente. Atraso concentrado num
     dia só é padrão, e padrão se resolve com conversa, não com desconto.
   </p>
   <div class="semana" id="mapa-semana"></div>
 
-  <h2 class="secao">
-    Faltas e ausências
-  </h2>
+  <h2 class="secao">Faltas e ausências</h2>
   <table class="responsiva">
     <thead><tr><th>Pessoa</th><th>Data</th><th>Dia</th><th>Situação</th><th>Justificativa</th></tr></thead>
     <tbody id="t-faltas"></tbody>
   </table>
 </section>
 
+<!-- ============ CONFIGURAÇÕES ============ -->
+<section class="painel" id="p-config" hidden>
+  <h2 class="secao">Aparelhos registrados</h2>
+  <p class="nota" style="margin-bottom:13px;max-width:70ch">
+    Cada pessoa registra o próprio celular. Se alguém perder o aparelho ou trocar de
+    número, revogue aqui: o passkey antigo para de valer na hora e a pessoa cadastra
+    o novo no primeiro acesso.
+  </p>
+  <table class="responsiva">
+    <thead><tr><th>Pessoa</th><th>Aparelho</th><th>Registrado</th><th>Última marcação</th><th>Situação</th><th></th></tr></thead>
+    <tbody id="t-dispositivos"></tbody>
+  </table>
+
+  <h2 class="secao">Feriados</h2>
+  <div class="filtros">
+    <label class="campo"><span>Ano</span><input type="number" id="f-ano" min="2020" max="2099" step="1"></label>
+    <button class="acao empurra" id="btn-novo-feriado">Adicionar feriado</button>
+  </div>
+  <table class="responsiva">
+    <thead><tr><th>Data</th><th>Nome</th><th>Tipo</th><th></th></tr></thead>
+    <tbody id="t-feriados"></tbody>
+  </table>
+
+  <h2 class="secao">Turnos</h2>
+  <table class="responsiva">
+    <thead><tr><th>Turno</th><th>Dias</th><th>Horário</th><th class="n">Carga diária</th><th class="n">Tolerância</th></tr></thead>
+    <tbody id="t-jornadas"></tbody>
+  </table>
+  <p class="nota" style="margin-top:12px;max-width:70ch">
+    O sábado não pertence ao turno: vem da escala de cada pessoa (A ou B), no horário
+    configurado para a unidade. Trocar o turno de alguém encerra a vigência anterior e
+    abre uma nova, preservando o espelho dos meses já fechados.
+  </p>
+
+  <h2 class="secao">Quem tem acesso administrativo</h2>
+  <table class="responsiva">
+    <thead><tr><th>E-mail</th><th>Papel</th><th>Observação</th><th></th></tr></thead>
+    <tbody id="t-acessos"></tbody>
+  </table>
+  <button class="leve" id="btn-novo-acesso" style="margin-top:12px">Conceder acesso</button>
+</section>
+
 </main>
 
-<!-- diálogo de cadastro -->
+<div id="avisos" aria-live="polite"></div>
+
 <dialog id="dlg-pessoa">
   <h2 id="dlg-pessoa-titulo">Cadastrar pessoa</h2>
   <div class="corpo">
-    <label class="campo"><span>Nome completo</span><input type="text" id="f-nome" maxlength="52"></label>
-    <label class="campo"><span>CPF</span><input type="text" id="f-cpf" inputmode="numeric" maxlength="14"></label>
-    <label class="campo"><span>E-mail de acesso</span><input type="text" id="f-email" inputmode="email"></label>
-    <label class="campo"><span>Cargo</span><input type="text" id="f-cargo"></label>
-    <label class="campo"><span>Admissão</span><input type="date" id="f-admissao"></label>
-    <label class="campo"><span>Turno</span><select id="f-jornada"></select></label>
-    <label class="campo"><span>Sábado (07:30 às 14:00, quinzenal)</span>
-      <select id="f-sabado">
-        <option value="">Não trabalha aos sábados</option>
-        <option value="A">Escala A — semanas pares</option>
-        <option value="B">Escala B — semanas ímpares</option>
-      </select>
-    </label>
-    <p class="nota">As duas escalas se alternam: quem é A trabalha num sábado,
-    quem é B no seguinte. Distribua a equipe entre as duas para ter sempre
-    gente na unidade.</p>
+    <label class="campo"><span>Nome completo</span><input type="text" id="f-nome" maxlength="52" autocomplete="off"></label>
+    <div class="grade2">
+      <label class="campo"><span>CPF</span><input type="text" id="f-cpf" inputmode="numeric" maxlength="14" autocomplete="off"></label>
+      <label class="campo"><span>Admissão</span><input type="date" id="f-admissao"></label>
+    </div>
+    <label class="campo"><span>E-mail de acesso</span><input type="email" id="f-email" inputmode="email" autocomplete="off"></label>
+    <label class="campo"><span>Cargo</span><input type="text" id="f-cargo" autocomplete="off"></label>
+    <div class="grade2">
+      <label class="campo"><span>Turno</span><select id="f-jornada"></select></label>
+      <label class="campo"><span>Sábado quinzenal</span>
+        <select id="f-sabado">
+          <option value="">Não trabalha</option>
+          <option value="A">Escala A — semanas pares</option>
+          <option value="B">Escala B — semanas ímpares</option>
+        </select>
+      </label>
+    </div>
+    <p class="nota">O e-mail é o que liga a pessoa ao login. As escalas A e B se alternam:
+    distribua a equipe entre as duas para ter sempre gente no sábado.</p>
+    <p class="erro" id="dlg-pessoa-erro"></p>
   </div>
   <div class="rodape">
-    <button class="leve" id="dlg-pessoa-cancelar">Cancelar</button>
+    <button class="leve" data-fecha="dlg-pessoa">Cancelar</button>
     <button class="acao" id="dlg-pessoa-salvar">Salvar</button>
   </div>
 </dialog>
 
-<!-- diálogo de ajuste -->
 <dialog id="dlg-ajuste">
   <h2 id="dlg-ajuste-titulo">Ajustar dia</h2>
   <div class="corpo">
-    <p class="nota" id="dlg-ajuste-contexto"></p>
+    <p class="nota" id="dlg-ajuste-contexto" style="margin-bottom:14px"></p>
+    <div id="ajustes-do-dia"></div>
     <label class="campo"><span>O que fazer</span>
       <select id="a-tipo">
         <option value="insercao">Inserir marcação esquecida</option>
@@ -223,38 +291,109 @@ dialog .nota{margin-top:14px}
       </select>
     </label>
     <label class="campo" id="a-wrap-hora"><span>Horário</span><input type="time" id="a-hora"></label>
-    <label class="campo" id="a-wrap-min" hidden><span>Minutos</span><input type="number" id="a-min" step="5"></label>
+    <label class="campo" id="a-wrap-min" hidden><span>Minutos</span><input type="number" id="a-min" step="5" min="0" max="1440"></label>
     <label class="campo"><span>Justificativa</span>
       <textarea id="a-just" placeholder="Por que este ajuste está sendo feito. Fica registrado com seu nome."></textarea>
     </label>
-    <p class="nota">
-      A marcação original nunca é apagada. O ajuste entra como uma camada por cima,
-      com autor e data, e pode ser cancelado depois.
-    </p>
+    <p class="nota">A marcação original nunca é apagada. O ajuste entra como camada por
+    cima, com autor e data, e pode ser cancelado depois.</p>
+    <p class="erro" id="dlg-ajuste-erro"></p>
   </div>
   <div class="rodape">
-    <button class="leve" id="dlg-ajuste-cancelar">Cancelar</button>
+    <button class="leve" data-fecha="dlg-ajuste">Fechar</button>
     <button class="acao" id="dlg-ajuste-salvar">Registrar ajuste</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-confirma">
+  <h2 id="cf-titulo">Confirmar</h2>
+  <div class="corpo">
+    <p id="cf-texto" style="line-height:1.55"></p>
+    <label class="campo" id="cf-wrap-data" hidden style="margin-top:16px">
+      <span id="cf-rotulo-data">Data</span><input type="date" id="cf-data">
+    </label>
+    <label class="campo" id="cf-wrap-select" hidden style="margin-top:16px">
+      <span id="cf-rotulo-select">Escolha</span><select id="cf-select"></select>
+    </label>
+    <label class="campo" id="cf-wrap-motivo" hidden style="margin-top:16px">
+      <span id="cf-rotulo-motivo">Motivo</span><textarea id="cf-motivo"></textarea>
+    </label>
+    <p class="erro" id="cf-erro"></p>
+  </div>
+  <div class="rodape">
+    <button class="leve" data-fecha="dlg-confirma">Cancelar</button>
+    <button class="acao" id="cf-ok">Confirmar</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-feriado">
+  <h2>Adicionar feriado</h2>
+  <div class="corpo">
+    <label class="campo"><span>Data</span><input type="date" id="fr-data"></label>
+    <label class="campo"><span>Nome</span><input type="text" id="fr-nome" maxlength="60"></label>
+    <label class="campo"><span>Tipo</span>
+      <select id="fr-tipo">
+        <option value="nacional">Nacional</option>
+        <option value="estadual">Estadual</option>
+        <option value="municipal">Municipal</option>
+        <option value="facultativo">Ponto facultativo</option>
+        <option value="recesso">Recesso da unidade</option>
+      </select>
+    </label>
+    <p class="nota">Em feriado a carga prevista do dia vira zero, então quem trabalhar
+    fica com saldo positivo integral. Cadastre apenas os dias em que a unidade realmente
+    fecha.</p>
+    <p class="erro" id="fr-erro"></p>
+  </div>
+  <div class="rodape">
+    <button class="leve" data-fecha="dlg-feriado">Cancelar</button>
+    <button class="acao" id="fr-salvar">Salvar</button>
+  </div>
+</dialog>
+
+<dialog id="dlg-acesso">
+  <h2>Conceder acesso administrativo</h2>
+  <div class="corpo">
+    <label class="campo"><span>E-mail</span><input type="email" id="ac-email" inputmode="email"></label>
+    <label class="campo"><span>Papel</span>
+      <select id="ac-papel">
+        <option value="coordenacao">Coordenação — vê e edita tudo</option>
+        <option value="auditor">Auditor — só leitura e exportação</option>
+      </select>
+    </label>
+    <label class="campo"><span>Observação</span><input type="text" id="ac-obs" maxlength="80"></label>
+    <p class="nota">O papel entra no próximo login. Se a conta já existir, a pessoa
+    precisa sair e entrar de novo para o acesso valer.</p>
+    <p class="erro" id="ac-erro"></p>
+  </div>
+  <div class="rodape">
+    <button class="leve" data-fecha="dlg-acesso">Cancelar</button>
+    <button class="acao" id="ac-salvar">Conceder</button>
   </div>
 </dialog>
 
 <script type="module">
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const CFG = { url:'https://snipevyvfxaotjhnabmx.supabase.co', anon:'sb_publishable_T0rV6HAXusL_3J3Yzh-P_Q_CieYFkjA', tz:'America/Sao_Paulo' };
+const CFG = {
+  url:'https://snipevyvfxaotjhnabmx.supabase.co',
+  anon:'sb_publishable_T0rV6HAXusL_3J3Yzh-P_Q_CieYFkjA',
+  tz:'America/Sao_Paulo',
+};
 const sb = createClient(CFG.url, CFG.anon);
 const P  = sb.schema('ponto');
 const $  = (id) => document.getElementById(id);
 
 let EU = null, EQUIPE = [], JORNADAS = [], TURNOS = {}, editando = null, ajustando = null;
 
-/* ---------- formatação ---------- */
+/* ===================== base ===================== */
 const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const esc = (s) => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const dia = (d) => d.split('-').reverse().slice(0,2).join('/');
 
 function hm(min){
   if (min === null || min === undefined) return '—';
-  const s = min < 0 ? '-' : '';
-  const a = Math.abs(min);
+  const s = min < 0 ? '-' : '', a = Math.abs(min);
   return `${s}${Math.floor(a/60)}:${String(a%60).padStart(2,'0')}`;
 }
 function saldoCel(min, rotulo = 'Saldo'){
@@ -268,31 +407,122 @@ function hora(iso){
   return new Intl.DateTimeFormat('pt-BR',{timeZone:CFG.tz,hour:'2-digit',minute:'2-digit',hour12:false})
     .format(new Date(iso));
 }
-const dia = (d) => d.split('-').reverse().slice(0,2).join('/');
-const esc = (s) => String(s ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-
 function periodoDoMes(mes){
   const [a,m] = mes.split('-').map(Number);
   return [`${mes}-01`, new Date(a, m, 0).toISOString().slice(0,10)];
 }
 
-/* ---------- navegação ---------- */
-document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
-  document.querySelectorAll('nav button').forEach(x => x.setAttribute('aria-selected', x === b));
-  document.querySelectorAll('.painel').forEach(p => p.hidden = p.id !== `p-${b.dataset.aba}`);
-  ({ espelho:carregarEspelho, banco:carregarBanco,
-     pendencias:carregarPendencias, relatorios:carregarRelatorios }[b.dataset.aba] ?? (()=>{}))();
-});
+function recado(texto, tipo = ''){
+  const el = document.createElement('div');
+  el.className = `recado ${tipo}`;
+  el.innerHTML = `<span>${esc(texto)}</span><button aria-label="Fechar">&times;</button>`;
+  el.querySelector('button').onclick = () => el.remove();
+  $('avisos').append(el);
+  setTimeout(() => el.remove(), tipo === 'erro' ? 9000 : 4500);
+}
 
-/* ================= EQUIPE ================= */
+/* Toda escrita passa por aqui. Antes, metade das operações ignorava o campo
+   `error`: o RLS barrava, devolvia zero linhas e a tela dizia que deu certo.
+   Foi assim que o passkey de quem era desligado continuava ativo. */
+async function escrever(promessa, sucesso){
+  const r = await promessa;
+  if (r.error){ recado(traduzir(r.error.message), 'erro'); return null; }
+  if (sucesso) recado(sucesso, 'ok');
+  return r.data ?? true;
+}
+function traduzir(msg){
+  const m = String(msg);
+  if (/empregados_cpf_valido/.test(m))        return 'CPF inválido: os dígitos verificadores não conferem.';
+  if (/empregados_email_formato/.test(m))     return 'E-mail em formato inválido.';
+  if (/empregados_nome_minimo/.test(m))       return 'Informe o nome completo.';
+  if (/empregados_admissao/.test(m))          return 'Data de admissão fora de um intervalo plausível.';
+  if (/empregados_demissao/.test(m))          return 'A data de saída não pode ser anterior à admissão.';
+  if (/duplicate key.*cpf/.test(m))           return 'Já existe alguém cadastrado com este CPF.';
+  if (/duplicate key.*email/.test(m))         return 'Este e-mail já está em uso por outra pessoa.';
+  if (/duplicate key.*feriados/.test(m))      return 'Já existe um feriado nesta data.';
+  if (/row-level security|permission denied/.test(m)) return 'Você não tem permissão para esta ação.';
+  if (/violates check constraint/.test(m))    return 'Algum campo está fora do formato esperado.';
+  if (/JWT|token|expired/i.test(m))           return 'Sua sessão expirou. Entre de novo.';
+  return m;
+}
+
+function cpfValido(cpf){
+  cpf = cpf.replace(/\D/g,'');
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  const d = cpf.split('').map(Number);
+  let s = 0;
+  for (let i = 0; i < 9; i++) s += d[i] * (10 - i);
+  let dv = 11 - (s % 11); if (dv >= 10) dv = 0;
+  if (dv !== d[9]) return false;
+  s = 0;
+  for (let i = 0; i < 10; i++) s += d[i] * (11 - i);
+  dv = 11 - (s % 11); if (dv >= 10) dv = 0;
+  return dv === d[10];
+}
+const fmtCpf = (c) => c.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4');
+const emailOk = (e) => /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(e);
+
+/* Confirmação com campos opcionais, no lugar de prompt(). prompt() não
+   valida, não é estilizável e é bloqueado dentro de outro diálogo. */
+function confirmar({ titulo, texto, okTexto = 'Confirmar', data, motivo, select }){
+  return new Promise((resolve) => {
+    $('cf-titulo').textContent = titulo;
+    $('cf-texto').textContent = texto;
+    $('cf-ok').textContent = okTexto;
+    $('cf-erro').textContent = '';
+
+    $('cf-wrap-data').hidden = !data;
+    if (data){ $('cf-rotulo-data').textContent = data.rotulo; $('cf-data').value = data.valor ?? ''; }
+    $('cf-wrap-motivo').hidden = !motivo;
+    if (motivo){ $('cf-rotulo-motivo').textContent = motivo.rotulo; $('cf-motivo').value = ''; }
+    $('cf-wrap-select').hidden = !select;
+    if (select){
+      $('cf-rotulo-select').textContent = select.rotulo;
+      $('cf-select').innerHTML = select.opcoes.map(o => `<option value="${o.v}">${esc(o.t)}</option>`).join('');
+    }
+
+    const dlg = $('dlg-confirma');
+    let resolvido = false;
+    const ok = () => {
+      if (data && !$('cf-data').value){ $('cf-erro').textContent = 'Informe a data.'; return; }
+      if (motivo && $('cf-motivo').value.trim().length < 5){
+        $('cf-erro').textContent = 'Escreva o motivo — ele fica registrado com seu nome.'; return;
+      }
+      resolvido = true;
+      dlg.close();
+      resolve({ data:$('cf-data').value, motivo:$('cf-motivo').value.trim(), select:$('cf-select').value });
+    };
+    $('cf-ok').addEventListener('click', ok);
+    dlg.addEventListener('close', () => {
+      $('cf-ok').removeEventListener('click', ok);
+      if (!resolvido) resolve(null);
+    }, { once:true });
+    dlg.showModal();
+  });
+}
+document.querySelectorAll('[data-fecha]').forEach(b => b.onclick = () => $(b.dataset.fecha).close());
+
+/* ===================== navegação ===================== */
+const CARREGA = {
+  equipe: carregarEquipe, espelho: carregarEspelho, banco: carregarBanco,
+  pendencias: carregarPendencias, relatorios: carregarRelatorios, config: carregarConfig,
+};
+document.querySelectorAll('nav.abas button[data-aba]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav.abas button[data-aba]').forEach(x => x.setAttribute('aria-selected', x === b));
+  document.querySelectorAll('.painel').forEach(p => p.hidden = p.id !== `p-${b.dataset.aba}`);
+  CARREGA[b.dataset.aba]?.();
+});
+$('sair').onclick = async () => { await sb.auth.signOut(); location.replace('./entrar.html'); };
+
+/* ===================== EQUIPE ===================== */
 async function carregarEquipe(){
-  const { data } = await P.from('empregados')
+  const { data, error } = await P.from('empregados')
     .select('id,nome,cpf,cargo,email,auth_user_id,admissao,demissao,ativo,escala_sabado')
     .order('nome');
+  if (error) return recado(traduzir(error.message), 'erro');
   EQUIPE = data ?? [];
 
-  const { data: vinc } = await P.from('empregado_jornada')
-    .select('empregado_id, jornadas(nome)');
+  const { data: vinc } = await P.from('empregado_jornada').select('empregado_id, jornadas(nome)');
   TURNOS = Object.fromEntries((vinc ?? []).map(v => [v.empregado_id, v.jornadas?.nome]));
 
   const saldos = Object.fromEntries(await Promise.all(EQUIPE.map(async e => {
@@ -304,146 +534,198 @@ async function carregarEquipe(){
   const f = $('f-situacao').value;
   const lista = EQUIPE.filter(e =>
     (f === 'todos' || (f === 'ativo') === !!e.ativo) &&
-    (!q || `${e.nome} ${e.cargo ?? ''}`.toLowerCase().includes(q)));
+    (!q || `${e.nome} ${e.cargo ?? ''} ${e.email ?? ''}`.toLowerCase().includes(q)));
+
+  $('cap-equipe').textContent =
+    `Equipe — ${lista.length} de ${EQUIPE.length} ${EQUIPE.length === 1 ? 'pessoa' : 'pessoas'}`;
 
   $('t-equipe').innerHTML = lista.length ? lista.map(e => `
-    <tr>
-      <td class="destaque" data-rotulo=""><strong>${esc(e.nome)}</strong></td>
+    <tr class="${e.ativo ? '' : 'inativo'}">
+      <td class="destaque" data-rotulo=""><strong>${esc(e.nome)}</strong>
+        <div class="mudo" style="font-size:12.5px">${fmtCpf(e.cpf)}${e.cargo ? ' · ' + esc(e.cargo) : ''}</div></td>
       <td data-rotulo="Turno">${TURNOS[e.id] ? esc(TURNOS[e.id]) : '<span class="mudo">sem turno</span>'}
-        ${e.escala_sabado ? `<div class="mudo" style="font-size:12px">sáb. escala ${e.escala_sabado}</div>` : ''}</td>
+        ${e.escala_sabado ? `<div class="mudo" style="font-size:12.5px">sáb. escala ${e.escala_sabado}</div>` : ''}</td>
       <td class="mudo" data-rotulo="E-mail" style="font-size:12.5px">${esc(e.email) || '—'}</td>
       <td data-rotulo="Acesso">${e.auth_user_id
         ? '<span class="tag ok">vinculado</span>'
         : e.email ? '<span class="tag neutra">aguardando 1º login</span>'
                   : '<span class="tag alerta">sem e-mail</span>'}</td>
-      <td class="hora" data-rotulo="Admissão">${e.admissao.split('-').reverse().join('/')}</td>
+      <td data-rotulo="Admissão">${e.admissao.split('-').reverse().join('/')}</td>
       ${saldoCel(saldos[e.id], 'Banco')}
       <td data-rotulo="Situação">${e.ativo
         ? '<span class="tag ok">ativo</span>'
-        : `<span class="tag neutra">desligado ${e.demissao ? e.demissao.split('-').reverse().slice(0,2).join('/') : ''}</span>`}</td>
-      <td data-rotulo="" style="text-align:right;white-space:nowrap">
+        : `<span class="tag neutra">desligado ${e.demissao ? dia(e.demissao) : ''}</span>`}</td>
+      <td data-rotulo=""><div class="acoes-linha">
         <button class="leve" data-editar="${e.id}">Editar</button>
-        ${e.ativo ? `<button class="leve" data-desligar="${e.id}">Desligar</button>` : ''}
-      </td>
+        ${e.ativo ? `<button class="leve" data-desligar="${e.id}">Desligar</button>`
+                  : `<button class="leve" data-reativar="${e.id}">Reativar</button>`}
+      </div></td>
     </tr>`).join('')
     : '<tr><td colspan="8" class="vazio">Nenhuma pessoa encontrada com esses filtros.</td></tr>';
 
-  ['e-pessoa','b-pessoa'].forEach(id => {
-    const sel = $(id), atual = sel.value;
-    const base = id === 'b-pessoa' ? '<option value="">Todas</option>' : '';
-    sel.innerHTML = base + EQUIPE.filter(e => e.ativo)
-      .map(e => `<option value="${e.id}">${esc(e.nome)}</option>`).join('');
-    if (atual) sel.value = atual;
-  });
+  const sel = $('e-pessoa'), atual = sel.value;
+  sel.innerHTML = EQUIPE.filter(e => e.ativo)
+    .map(e => `<option value="${e.id}">${esc(e.nome)}</option>`).join('');
+  if (atual && EQUIPE.some(e => e.id === atual && e.ativo)) sel.value = atual;
 }
-
 $('q-equipe').oninput = carregarEquipe;
 $('f-situacao').onchange = carregarEquipe;
 
 $('t-equipe').onclick = async (ev) => {
-  const ed = ev.target.dataset.editar, de = ev.target.dataset.desligar;
-  if (ed) return abrirPessoa(EQUIPE.find(x => x.id === ed));
-  if (de){
-    const p = EQUIPE.find(x => x.id === de);
-    const data = prompt(
-      `Desligar ${p.nome}.\n\nO cadastro não é apagado: as marcações e o espelho de ponto ` +
-      `continuam disponíveis, como manda o prazo de guarda trabalhista. ` +
-      `A pessoa apenas deixa de conseguir bater ponto.\n\nData do desligamento (AAAA-MM-DD):`,
-      new Date().toISOString().slice(0,10));
-    if (!data) return;
-    await P.from('empregados').update({ ativo:false, demissao:data }).eq('id', de);
-    await P.from('biometria_facial').update({ revogado_em:new Date().toISOString() }).eq('empregado_id', de);
-    await P.from('dispositivos').update({ ativo:false }).eq('empregado_id', de);
-    carregarEquipe();
+  const b = ev.target.closest('button'); if (!b) return;
+  const { editar, desligar, reativar } = b.dataset;
+  if (editar) return abrirPessoa(EQUIPE.find(x => x.id === editar));
+
+  if (desligar){
+    const p = EQUIPE.find(x => x.id === desligar);
+    const r = await confirmar({
+      titulo:`Desligar ${p.nome}`,
+      texto:'O cadastro não é apagado: as marcações e o espelho continuam disponíveis, '
+        + 'como exige o prazo de guarda trabalhista. O que acontece é que o passkey do '
+        + 'celular é desativado, a biometria revogada e o turno encerrado na data da saída.',
+      okTexto:'Desligar',
+      data:{ rotulo:'Data do desligamento', valor:new Date().toISOString().slice(0,10) },
+      motivo:{ rotulo:'Motivo' },
+    });
+    if (!r) return;
+    const res = await escrever(P.rpc('desligar_empregado',
+      { p_emp: desligar, p_demissao: r.data, p_motivo: r.motivo }));
+    if (res) recado(`${res.nome} desligado. ${res.passkeys_desativados} aparelho(s) e `
+      + `${res.biometrias_revogadas} biometria(s) revogados.`, 'ok');
+    return carregarEquipe();
+  }
+
+  if (reativar){
+    if (!JORNADAS.length) return recado('Nenhum turno cadastrado.', 'erro');
+    const p = EQUIPE.find(x => x.id === reativar);
+    const r = await confirmar({
+      titulo:`Reativar ${p.nome}`,
+      texto:'A pessoa volta a aparecer como ativa e pode bater ponto de novo. A biometria '
+        + 'e o passkey NÃO voltam: quem retorna passa pelo cadastro presencial outra vez, '
+        + 'com consentimento novo. É de propósito.',
+      okTexto:'Reativar',
+      select:{ rotulo:'Turno', opcoes: JORNADAS.map(j => ({ v:j.id, t:j.nome })) },
+    });
+    if (!r) return;
+    const res = await escrever(P.rpc('reativar_empregado', { p_emp: reativar, p_jornada: r.select }));
+    if (res) recado(`${res.nome} reativado. Refaça o cadastro biométrico.`, 'ok');
+    return carregarEquipe();
   }
 };
 
 function abrirPessoa(p){
   editando = p ?? null;
   $('dlg-pessoa-titulo').textContent = p ? 'Editar pessoa' : 'Cadastrar pessoa';
+  $('dlg-pessoa-erro').textContent = '';
   $('f-nome').value = p?.nome ?? '';
-  $('f-cpf').value  = p?.cpf ?? '';
+  $('f-cpf').value  = p ? fmtCpf(p.cpf) : '';
   $('f-cargo').value = p?.cargo ?? '';
   $('f-email').value = p?.email ?? '';
   $('f-admissao').value = p?.admissao ?? new Date().toISOString().slice(0,10);
-  $('f-jornada').innerHTML = JORNADAS.map(j => `<option value="${j.id}">${esc(j.nome)}</option>`).join('');
   $('f-sabado').value = p?.escala_sabado ?? '';
-  if (p) {
-    P.from('empregado_jornada').select('jornada_id').eq('empregado_id', p.id)
-      .maybeSingle().then(({ data }) => { if (data) $('f-jornada').value = data.jornada_id; });
-  }
+  $('f-jornada').innerHTML = JORNADAS.map(j => `<option value="${j.id}">${esc(j.nome)}</option>`).join('');
+  if (p) P.from('empregado_jornada').select('jornada_id').eq('empregado_id', p.id)
+    .maybeSingle().then(({ data }) => { if (data) $('f-jornada').value = data.jornada_id; });
   $('dlg-pessoa').showModal();
+  $('f-nome').focus();
 }
 $('btn-novo').onclick = () => abrirPessoa(null);
-$('dlg-pessoa-cancelar').onclick = () => $('dlg-pessoa').close();
+$('f-cpf').oninput = (e) => {
+  const d = e.target.value.replace(/\D/g,'').slice(0,11);
+  e.target.value = d.length > 9 ? fmtCpf(d) : d;
+};
 
 $('dlg-pessoa-salvar').onclick = async () => {
+  const err = $('dlg-pessoa-erro');
   const cpf = $('f-cpf').value.replace(/\D/g,'');
-  if (cpf.length !== 11) return alert('CPF precisa ter 11 dígitos.');
-  if (!$('f-nome').value.trim()) return alert('Informe o nome completo.');
+  const nome = $('f-nome').value.trim();
+  const email = $('f-email').value.trim().toLowerCase();
+
+  // Validar aqui dá a mensagem no campo certo e evita uma ida ao servidor.
+  // As mesmas regras existem como constraint: a tela é conveniência, o
+  // banco é a garantia.
+  if (nome.length < 5)  return (err.textContent = 'Informe o nome completo.');
+  if (!cpfValido(cpf))  return (err.textContent = 'CPF inválido — confira os dígitos.');
+  if (email && !emailOk(email)) return (err.textContent = 'E-mail em formato inválido.');
+  if (!$('f-admissao').value)   return (err.textContent = 'Informe a data de admissão.');
+  if (!JORNADAS.length)         return (err.textContent = 'Nenhum turno cadastrado.');
+
+  const btn = $('dlg-pessoa-salvar');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  err.textContent = '';
 
   const dados = {
-    nome: $('f-nome').value.trim().toUpperCase(),
-    cpf, cargo: $('f-cargo').value.trim() || null,
-    email: $('f-email').value.trim().toLowerCase() || null,
+    nome: nome.toUpperCase(), cpf,
+    cargo: $('f-cargo').value.trim() || null,
+    email: email || null,
     admissao: $('f-admissao').value,
     escala_sabado: $('f-sabado').value || null,
   };
 
-  if (editando){
-    await P.from('empregados').update(dados).eq('id', editando.id);
-    // Trocar de turno não pode reescrever o passado: encerra a vigência
-    // anterior hoje e abre uma nova. O espelho dos meses fechados continua
-    // apurado contra o horário que valia na época.
-    const { data: atual } = await P.from('empregado_jornada')
-      .select('id, jornada_id').eq('empregado_id', editando.id).maybeSingle();
-    if (atual && atual.jornada_id !== $('f-jornada').value){
-      const hoje = new Date().toISOString().slice(0,10);
-      await P.from('empregado_jornada').delete().eq('id', atual.id);
-      await P.from('empregado_jornada').insert({
-        empregado_id: editando.id, jornada_id: $('f-jornada').value,
-        vigencia: `[${hoje},)`,
-      });
+  try {
+    if (editando){
+      if (!await escrever(P.from('empregados').update(dados).eq('id', editando.id))) return;
+      const { data: atual } = await P.from('empregado_jornada')
+        .select('id, jornada_id').eq('empregado_id', editando.id).maybeSingle();
+      if (atual && atual.jornada_id !== $('f-jornada').value){
+        // Trocar de turno não reescreve o passado: encerra a vigência hoje e
+        // abre outra. O espelho dos meses fechados continua apurado contra o
+        // horário que valia na época.
+        const hoje = new Date().toISOString().slice(0,10);
+        await escrever(P.from('empregado_jornada').delete().eq('id', atual.id));
+        await escrever(P.from('empregado_jornada').insert({
+          empregado_id: editando.id, jornada_id: $('f-jornada').value, vigencia:`[${hoje},)` }));
+      } else if (!atual){
+        await escrever(P.from('empregado_jornada').insert({
+          empregado_id: editando.id, jornada_id: $('f-jornada').value,
+          vigencia:`[${dados.admissao},)` }));
+      }
+      recado('Cadastro atualizado.', 'ok');
+    } else {
+      const { data: rep } = await P.from('rep').select('id').limit(1).single();
+      const novo = await escrever(
+        P.from('empregados').insert({ ...dados, rep_id: rep.id }).select('id').single());
+      if (!novo) return;
+      await escrever(P.from('empregado_jornada').insert({
+        empregado_id: novo.id, jornada_id: $('f-jornada').value,
+        vigencia:`[${dados.admissao},)` }));
+      recado(`${dados.nome} cadastrado. Crie a conta no Authentication com o mesmo e-mail.`, 'ok');
     }
-  } else {
-    const { data: rep } = await P.from('rep').select('id').limit(1).single();
-    const { data: novo, error } = await P.from('empregados')
-      .insert({ ...dados, rep_id: rep.id }).select('id').single();
-    if (error) return alert(error.message.includes('duplicate') ? 'Já existe alguém com este CPF.' : error.message);
-    await P.from('empregado_jornada').insert({
-      empregado_id: novo.id, jornada_id: $('f-jornada').value,
-      vigencia: `[${dados.admissao},)`,
-    });
+    $('dlg-pessoa').close();
+    carregarEquipe();
+  } finally {
+    btn.disabled = false; btn.textContent = 'Salvar';
   }
-  $('dlg-pessoa').close();
-  carregarEquipe();
 };
 
-/* ================= ESPELHO ================= */
+/* ===================== ESPELHO ===================== */
 async function carregarEspelho(){
   const emp = $('e-pessoa').value;
-  if (!emp) return;
+  if (!emp){
+    $('t-espelho').innerHTML = '<tr><td colspan="11" class="vazio">Cadastre alguém na aba Equipe primeiro.</td></tr>';
+    $('e-indicadores').innerHTML = '';
+    return;
+  }
   const [ini, fim] = periodoDoMes($('e-mes').value);
-  const { data } = await P.rpc('espelho', { p_emp:emp, p_ini:ini, p_fim:fim });
+  const { data, error } = await P.rpc('espelho', { p_emp:emp, p_ini:ini, p_fim:fim });
+  if (error) return recado(traduzir(error.message), 'erro');
   const linhas = data ?? [];
 
-  const somaSe = (f) => linhas.filter(f).length;
+  const conta = (f) => linhas.filter(f).length;
   const soma = (k) => linhas.reduce((a,l) => a + (l[k] ?? 0), 0);
   const { data: banco } = await P.rpc('saldo_banco', { p_emp:emp, p_ate:fim });
 
-  $('e-titulo').textContent =
-    `Espelho de ponto — ${$('e-pessoa').selectedOptions[0].textContent}`;
-
+  $('e-titulo').textContent = `Espelho de ponto — ${$('e-pessoa').selectedOptions[0].textContent}`;
   $('e-indicadores').innerHTML = `
     <div class="ind"><dt>Horas trabalhadas</dt><dd>${hm(soma('trabalhado_min'))}</dd>
       <p class="nota">previsto ${hm(soma('carga_prev_min'))}</p></div>
     <div class="ind"><dt>Saldo do mês</dt><dd class="${soma('saldo_min')>=0?'pos':'neg'}">${soma('saldo_min')>0?'+':''}${hm(soma('saldo_min'))}</dd>
       <p class="nota">banco acumulado ${hm(banco)}</p></div>
-    <div class="ind"><dt>Atrasos</dt><dd>${somaSe(l=>l.atraso_min>0)}</dd>
+    <div class="ind"><dt>Atrasos</dt><dd>${conta(l=>l.atraso_min>0)}</dd>
       <p class="nota">${hm(soma('atraso_min'))} no total</p></div>
-    <div class="ind"><dt>Faltas</dt><dd>${somaSe(l=>l.falta)}</dd>
+    <div class="ind"><dt>Faltas</dt><dd>${conta(l=>l.falta)}</dd>
       <p class="nota">sem abono lançado</p></div>
-    <div class="ind"><dt>Dias em aberto</dt><dd class="${somaSe(l=>!l.apurado)?'neg':''}">${somaSe(l=>!l.apurado)}</dd>
+    <div class="ind"><dt>Dias em aberto</dt><dd class="${conta(l=>!l.apurado)?'neg':''}">${conta(l=>!l.apurado)}</dd>
       <p class="nota">esperando ajuste</p></div>`;
 
   $('t-espelho').innerHTML = linhas.map(l => {
@@ -455,7 +737,8 @@ async function carregarEspelho(){
     else if (l.falta)     situacao = '<span class="tag alerta">falta</span>';
     else if (l.abono_min) situacao = '<span class="tag neutra">abonado</span>';
     else if (l.carga_prev_min === 0) situacao = '<span class="tag neutra">folga</span>';
-    const notas = (l.inconsistencias ?? []).map(i => `<div class="mudo" style="font-size:12px;margin-top:4px">${esc(i)}</div>`).join('');
+    const notas = (l.inconsistencias ?? []).map(i =>
+      `<div class="mudo" style="font-size:12px;margin-top:4px">${esc(i)}</div>`).join('');
 
     return `<tr class="${fds?'fds':''} ${problema?'problema':''}">
       <td class="destaque" data-rotulo="">${dia(l.data)} <span class="mudo">${DOW[l.dia_semana]}</span></td>
@@ -468,23 +751,54 @@ async function carregarEspelho(){
       <td data-rotulo="Atraso" class="n ${l.atraso_min ? 'neg' : ''}">${l.atraso_min ? hm(l.atraso_min) : '—'}</td>
       ${saldoCel(l.saldo_min)}
       <td data-rotulo="Situação">${situacao}${notas}</td>
-      <td data-rotulo="" style="text-align:right"><button class="leve" data-ajustar="${l.data}">Ajustar</button></td>
+      <td data-rotulo=""><div class="acoes-linha"><button class="leve" data-ajustar="${l.data}">Ajustar</button></div></td>
     </tr>`;
   }).join('');
 }
-
 $('e-pessoa').onchange = carregarEspelho;
 $('e-mes').onchange = carregarEspelho;
 
-$('t-espelho').onclick = (ev) => {
-  const d = ev.target.dataset.ajustar;
-  if (!d) return;
+$('t-espelho').onclick = async (ev) => {
+  const d = ev.target.closest('button')?.dataset.ajustar; if (!d) return;
   ajustando = { emp: $('e-pessoa').value, data: d };
   $('dlg-ajuste-titulo').textContent = `Ajustar ${dia(d)}`;
   $('dlg-ajuste-contexto').textContent =
     `${$('e-pessoa').selectedOptions[0].textContent} · ${d.split('-').reverse().join('/')}`;
-  $('a-just').value = '';
+  $('a-just').value = ''; $('a-hora').value = ''; $('a-min').value = '';
+  $('dlg-ajuste-erro').textContent = '';
+  await listarAjustesDoDia();
   $('dlg-ajuste').showModal();
+};
+
+/* A política de cancelamento existia no banco desde o começo, mas não havia
+   botão — um ajuste errado ficava lá para sempre. */
+async function listarAjustesDoDia(){
+  const { data } = await P.from('ajustes')
+    .select('id,tipo,horario,minutos,justificativa,cancelado_em')
+    .eq('empregado_id', ajustando.emp).eq('data', ajustando.data).order('criado_em');
+  const vivos = (data ?? []).filter(a => !a.cancelado_em);
+  $('ajustes-do-dia').innerHTML = vivos.length ? `
+    <p class="rotulo" style="margin-bottom:8px">Ajustes já lançados</p>
+    ${vivos.map(a => `<div style="display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--linha)">
+      <div style="flex:1">
+        <strong style="font-size:13.5px">${esc(a.tipo)}</strong>${a.horario ? ` · ${hora(a.horario)}` : a.minutos ? ` · ${hm(a.minutos)}` : ''}
+        <div class="mudo" style="font-size:12.5px;margin-top:2px">${esc(a.justificativa)}</div>
+      </div>
+      <button class="leve" data-cancelar="${a.id}" style="padding:6px 11px;font-size:12.5px;min-height:0">Cancelar</button>
+    </div>`).join('')}<div style="height:16px"></div>` : '';
+}
+$('ajustes-do-dia').onclick = async (ev) => {
+  const id = ev.target.closest('button')?.dataset.cancelar; if (!id) return;
+  const r = await confirmar({
+    titulo:'Cancelar ajuste',
+    texto:'O ajuste deixa de valer, mas continua registrado com o motivo e o autor do '
+      + 'cancelamento. Nada é apagado.',
+    okTexto:'Cancelar ajuste', motivo:{ rotulo:'Por que está sendo cancelado' },
+  });
+  if (!r) return;
+  if (await escrever(P.rpc('cancelar_ajuste', { p_ajuste:id, p_motivo:r.motivo }), 'Ajuste cancelado.')){
+    await listarAjustesDoDia(); carregarEspelho();
+  }
 };
 
 $('a-tipo').onchange = () => {
@@ -492,186 +806,201 @@ $('a-tipo').onchange = () => {
   $('a-wrap-hora').hidden = t !== 'insercao';
   $('a-wrap-min').hidden  = t === 'insercao';
 };
-$('dlg-ajuste-cancelar').onclick = () => $('dlg-ajuste').close();
 
 $('dlg-ajuste-salvar').onclick = async () => {
+  const err = $('dlg-ajuste-erro');
   const tipo = $('a-tipo').value;
   const just = $('a-just').value.trim();
-  if (just.length < 5) return alert('Escreva a justificativa. Ela fica registrada com seu nome.');
+  if (!EU) return (err.textContent = 'Seu login não está ligado a um cadastro de pessoa.');
+  if (just.length < 5) return (err.textContent = 'Escreva a justificativa — ela fica registrada com seu nome.');
 
-  const reg = {
-    empregado_id: ajustando.emp, data: ajustando.data, tipo,
-    justificativa: just, criado_por: EU.id,
-  };
+  const reg = { empregado_id: ajustando.emp, data: ajustando.data, tipo,
+                justificativa: just, criado_por: EU.id };
   if (tipo === 'insercao'){
-    if (!$('a-hora').value) return alert('Informe o horário da marcação.');
+    if (!$('a-hora').value) return (err.textContent = 'Informe o horário da marcação.');
     reg.horario = new Date(`${ajustando.data}T${$('a-hora').value}:00-03:00`).toISOString();
   } else {
-    reg.minutos = Number($('a-min').value || 0);
+    const min = Number($('a-min').value || 0);
+    if (min <= 0) return (err.textContent = 'Informe quantos minutos.');
+    reg.minutos = min;
   }
-
-  const { error } = await P.from('ajustes').insert(reg);
-  if (error) return alert(error.message);
-  $('dlg-ajuste').close();
-  carregarEspelho();
+  err.textContent = '';
+  if (await escrever(P.from('ajustes').insert(reg), 'Ajuste registrado.')){
+    $('dlg-ajuste').close(); carregarEspelho();
+  }
 };
 
 $('btn-fechar-mes').onclick = async () => {
+  if (!$('e-pessoa').value) return recado('Escolha a pessoa primeiro.', 'erro');
   const [ini, fim] = periodoDoMes($('e-mes').value);
-  const { data } = await P.rpc('fechar_banco', { p_emp:$('e-pessoa').value, p_ini:ini, p_fim:fim });
-  alert(`${data} dias lançados no banco de horas.\n\nDias em aberto não são lançados — resolva os ajustes primeiro.`);
+  const n = await escrever(P.rpc('fechar_banco', { p_emp:$('e-pessoa').value, p_ini:ini, p_fim:fim }));
+  if (n !== null) recado(`${n} dia(s) lançados no banco. Dias em aberto não entram — resolva os ajustes antes.`, 'ok');
   carregarEspelho();
 };
 
 $('btn-csv').onclick = async () => {
+  if (!$('e-pessoa').value) return recado('Escolha a pessoa primeiro.', 'erro');
   const [ini, fim] = periodoDoMes($('e-mes').value);
-  const { data } = await P.rpc('espelho', { p_emp:$('e-pessoa').value, p_ini:ini, p_fim:fim });
-  const cab = 'data;entrada;saida_almoco;volta_almoco;saida;trabalhado;intervalo;atraso;saldo;situacao';
+  const { data, error } = await P.rpc('espelho', { p_emp:$('e-pessoa').value, p_ini:ini, p_fim:fim });
+  if (error) return recado(traduzir(error.message), 'erro');
+  const cab = 'data;dia;entrada;saida_almoco;volta_almoco;saida;trabalhado;intervalo;atraso;saldo;situacao';
   const linhas = data.map(l => [
-    l.data, hora(l.entrada), hora(l.saida_almoco), hora(l.volta_almoco), hora(l.saida),
-    hm(l.trabalhado_min), hm(l.intervalo_min), hm(l.atraso_min), hm(l.saldo_min),
+    l.data, DOW[l.dia_semana], hora(l.entrada), hora(l.saida_almoco), hora(l.volta_almoco),
+    hora(l.saida), hm(l.trabalhado_min), hm(l.intervalo_min), hm(l.atraso_min), hm(l.saldo_min),
     l.falta ? 'falta' : !l.apurado ? 'em aberto' : 'ok',
   ].join(';'));
-  const blob = new Blob(['\ufeff' + [cab, ...linhas].join('\n')], { type:'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  Object.assign(document.createElement('a'), {
-    href:url, download:`espelho-${$('e-pessoa').selectedOptions[0].textContent}-${$('e-mes').value}.csv`
-  }).click();
+  const url = URL.createObjectURL(new Blob(['\ufeff' + [cab, ...linhas].join('\n')],
+    { type:'text/csv;charset=utf-8' }));
+  Object.assign(document.createElement('a'),
+    { href:url, download:`espelho-${$('e-pessoa').selectedOptions[0].textContent}-${$('e-mes').value}.csv` }).click();
   URL.revokeObjectURL(url);
 };
 
-/* ================= BANCO ================= */
+/* ===================== BANCO ===================== */
 async function carregarBanco(){
   const fim = $('b-fim').value;
-  const { data: cfg } = await P.from('banco_config').select('prazo_meses,teto_positivo_min,teto_negativo_min').maybeSingle();
+  const { data: cfg } = await P.from('banco_config')
+    .select('prazo_meses,teto_positivo_min,teto_negativo_min').maybeSingle();
   const prazo = cfg?.prazo_meses ?? 6;
 
   $('banco-aviso').innerHTML =
-    `Banco de horas por acordo individual escrito compensa em até 6 meses; por acordo ou ` +
-    `convenção coletiva, até 12. Saldo positivo não compensado no prazo vira hora extra ` +
-    `a pagar, com adicional. A coluna <strong>Prazo</strong> mostra quanto tempo resta ` +
-    `para o saldo mais antigo de cada pessoa. Confirme com seu contador qual instrumento ` +
-    `vocês têm assinado antes de confiar no prazo de ${prazo} meses configurado aqui.`;
+    `Banco de horas por acordo individual escrito compensa em até 6 meses; por acordo ou `
+    + `convenção coletiva, até 12. Saldo positivo não compensado no prazo vira hora extra `
+    + `a pagar, com adicional. A coluna <strong>Prazo</strong> mostra quanto resta para o `
+    + `saldo mais antigo de cada pessoa. Confirme com o contador qual instrumento vocês `
+    + `têm assinado antes de confiar no prazo de ${prazo} meses configurado aqui.`;
 
-  const linhas = await Promise.all(EQUIPE.filter(e => e.ativo).map(async e => {
+  const ativos = EQUIPE.filter(e => e.ativo);
+  const linhas = await Promise.all(ativos.map(async e => {
     const { data: s } = await P.rpc('saldo_banco', { p_emp:e.id, p_ate:fim });
     const { data: ant } = await P.from('banco_lancamentos')
       .select('data').eq('empregado_id', e.id).gt('minutos', 0)
       .order('data').limit(1).maybeSingle();
     let restam = null;
     if (ant && s > 0){
-      const venc = new Date(ant.data);
-      venc.setMonth(venc.getMonth() + prazo);
+      const venc = new Date(ant.data); venc.setMonth(venc.getMonth() + prazo);
       restam = Math.round((venc - new Date()) / 86400000);
     }
     return { e, s: s ?? 0, restam };
   }));
 
-  $('t-banco').innerHTML = linhas.map(({e,s,restam}) => {
+  $('t-banco').innerHTML = linhas.length ? linhas.map(({e,s,restam}) => {
     const estouro = cfg && (s > cfg.teto_positivo_min || s < cfg.teto_negativo_min);
     return `<tr>
-      <td><button class="leve" data-extrato="${e.id}">${esc(e.nome)}</button></td>
+      <td class="destaque" data-rotulo=""><button class="leve" data-extrato="${e.id}" style="padding:6px 11px;min-height:0">${esc(e.nome)}</button></td>
       ${saldoCel(s)}
-      <td>${estouro ? '<span class="tag alerta">fora do teto</span>'
+      <td data-rotulo="Situação">${estouro ? '<span class="tag alerta">fora do teto</span>'
            : s === 0 ? '<span class="tag neutra">zerado</span>'
            : `<span class="tag ${s>0?'ok':'alerta'}">${s>0?'a compensar':'a repor'}</span>`}</td>
-      <td class="n ${restam !== null && restam < 30 ? 'neg' : ''}">${restam === null ? '—' : `${restam} d`}</td>
+      <td class="n ${restam !== null && restam < 30 ? 'neg' : ''}" data-rotulo="Prazo">${restam === null ? '—' : `${restam} d`}</td>
     </tr>`;
-  }).join('');
+  }).join('') : '<tr><td colspan="4" class="vazio">Nenhuma pessoa ativa.</td></tr>';
 }
+$('b-fim').onchange = carregarBanco;
 
 $('t-banco').onclick = async (ev) => {
-  const id = ev.target.dataset.extrato;
-  if (!id) return;
-  const { data } = await P.rpc('extrato_banco', { p_emp:id, p_ini:$('b-ini').value, p_fim:$('b-fim').value });
+  const id = ev.target.closest('button')?.dataset.extrato; if (!id) return;
+  const pessoa = EQUIPE.find(e => e.id === id);
+  const ini = new Date(); ini.setMonth(ini.getMonth() - 6);
+  const { data, error } = await P.rpc('extrato_banco',
+    { p_emp:id, p_ini:ini.toISOString().slice(0,10), p_fim:$('b-fim').value });
+  if (error) return recado(traduzir(error.message), 'erro');
+  $('cap-extrato').textContent = `Extrato — ${pessoa.nome} (últimos 6 meses)`;
   $('tb-extrato').hidden = false;
-  $('t-extrato').innerHTML = (data ?? []).map(l => `<tr>
-    <td class="hora">${dia(l.data)}</td>
-    <td>${esc(l.origem)}</td>
-    ${saldoCel(l.minutos)}${saldoCel(l.acumulado)}
-    <td class="mudo">${esc(l.observacao) || '—'}</td>
-  </tr>`).join('') || '<tr><td colspan="5" class="vazio">Sem lançamentos no período.</td></tr>';
+  $('t-extrato').innerHTML = (data ?? []).length ? data.map(l => `<tr>
+    <td class="destaque" data-rotulo="">${dia(l.data)}</td>
+    <td data-rotulo="Origem">${esc(l.origem)}</td>
+    ${saldoCel(l.minutos, 'Lançamento')}${saldoCel(l.acumulado, 'Acumulado')}
+  </tr>`).join('') : '<tr><td colspan="4" class="vazio">Sem lançamentos no período.</td></tr>';
+  $('tb-extrato').scrollIntoView({ behavior:'smooth', block:'nearest' });
 };
-['b-ini','b-fim','b-pessoa'].forEach(id => $(id).onchange = carregarBanco);
 
-/* ================= PENDÊNCIAS ================= */
+/* ===================== PENDÊNCIAS ===================== */
 async function carregarPendencias(){
   const ini = $('pd-ini').value, fim = $('pd-fim').value;
-  const { data: faltas } = await P.rpc('relatorio_faltas', { p_ini:ini, p_fim:fim });
+  const { data: faltas, error } = await P.rpc('relatorio_faltas', { p_ini:ini, p_fim:fim });
+  if (error) return recado(traduzir(error.message), 'erro');
 
   $('t-aberto').innerHTML = (faltas ?? []).length ? faltas.map(f => `<tr>
-    <td>${esc(f.nome)}</td>
-    <td class="hora">${dia(f.data)} <span class="mudo">${DOW[f.dia_semana]}</span></td>
-    <td><span class="tag ${f.situacao === 'ausência abonada' ? 'neutra' : 'alerta'}">${esc(f.situacao)}</span></td>
-    <td class="mudo">${esc(f.justificativa) || '—'}</td>
-    <td style="text-align:right"><button class="leve" data-ir="${f.empregado_id}|${f.data}">Abrir espelho</button></td>
-  </tr>`).join('')
-    : '<tr><td colspan="5" class="vazio">Nada em aberto no período. Bom sinal.</td></tr>';
+    <td class="destaque" data-rotulo="">${esc(f.nome)}</td>
+    <td data-rotulo="Data">${dia(f.data)} <span class="mudo">${DOW[f.dia_semana]}</span></td>
+    <td data-rotulo="Situação"><span class="tag ${f.situacao === 'ausência abonada' ? 'neutra' : 'alerta'}">${esc(f.situacao)}</span></td>
+    <td class="mudo" data-rotulo="Justificativa">${esc(f.justificativa) || '—'}</td>
+    <td data-rotulo=""><div class="acoes-linha"><button class="leve" data-ir="${f.empregado_id}|${f.data}">Abrir espelho</button></div></td>
+  </tr>`).join('') : '<tr><td colspan="5" class="vazio">Nada em aberto no período. Bom sinal.</td></tr>';
 
   const { data: sin } = await P.from('v_pendencias').select('*').limit(80);
   $('t-sinalizadas').innerHTML = (sin ?? []).length ? sin.map(s => `<tr>
-    <td>${esc(s.nome)}</td>
-    <td class="hora">${dia(s.dh_marcacao.slice(0,10))} ${hora(s.dh_marcacao)}</td>
-    <td>${s.dentro_cerca ? '<span class="tag ok">na escola</span>'
+    <td class="destaque" data-rotulo="">${esc(s.nome)}</td>
+    <td data-rotulo="Quando">${dia(s.dh_marcacao.slice(0,10))} ${hora(s.dh_marcacao)}</td>
+    <td data-rotulo="Local">${s.dentro_cerca ? '<span class="tag ok">na escola</span>'
         : s.ip_autorizado ? '<span class="tag ok">rede da escola</span>'
         : '<span class="tag alerta">fora</span>'}</td>
-    <td>${s.face_ok && s.liveness_ok ? '<span class="tag ok">confirmada</span>'
+    <td data-rotulo="Identidade">${s.face_ok && s.liveness_ok ? '<span class="tag ok">confirmada</span>'
         : '<span class="tag alerta">não confirmada</span>'}</td>
-    <td class="n">${s.distancia_cerca_m ? Math.round(s.distancia_cerca_m) + ' m' : '—'}</td>
-    <td style="text-align:right">
+    <td class="n" data-rotulo="Distância">${s.distancia_cerca_m ? Math.round(s.distancia_cerca_m) + ' m' : '—'}</td>
+    <td data-rotulo=""><div class="acoes-linha">
       <button class="leve" data-aceitar="${s.arp_id}">Aceitar</button>
       <button class="leve" data-contestar="${s.arp_id}">Contestar</button>
-    </td>
-  </tr>`).join('')
-    : '<tr><td colspan="6" class="vazio">Nenhuma marcação sinalizada.</td></tr>';
+    </div></td>
+  </tr>`).join('') : '<tr><td colspan="6" class="vazio">Nenhuma marcação sinalizada.</td></tr>';
 }
+$('pd-ini').onchange = carregarPendencias;
+$('pd-fim').onchange = carregarPendencias;
 
 $('t-sinalizadas').onclick = async (ev) => {
-  const ac = ev.target.dataset.aceitar, ct = ev.target.dataset.contestar;
-  const id = ac || ct;
-  if (!id) return;
-  const obs = ct ? prompt('Por que esta marcação está sendo contestada?') : null;
-  if (ct && !obs) return;
-  await P.from('marcacao_contexto').update({
-    revisao: ac ? 'aceita' : 'contestada',
-    revisado_por: EU.id, revisado_em: new Date().toISOString(), observacao: obs,
-  }).eq('arp_id', id);
-  carregarPendencias();
+  const b = ev.target.closest('button'); if (!b) return;
+  const { aceitar, contestar } = b.dataset;
+  const id = aceitar || contestar; if (!id) return;
+
+  let obs = null;
+  if (contestar){
+    const r = await confirmar({
+      titulo:'Contestar marcação',
+      texto:'A marcação continua valendo para a jornada — ela não some. O que fica '
+        + 'registrado é a sua ressalva, com data e autor, para a conversa com a pessoa.',
+      okTexto:'Contestar', motivo:{ rotulo:'Por que está sendo contestada' },
+    });
+    if (!r) return;
+    obs = r.motivo;
+  }
+  const ok = await escrever(P.from('marcacao_contexto').update({
+    revisao: aceitar ? 'aceita' : 'contestada',
+    revisado_por: EU?.id ?? null, revisado_em: new Date().toISOString(), observacao: obs,
+  }).eq('arp_id', id), aceitar ? 'Marcação aceita.' : 'Contestação registrada.');
+  if (ok) carregarPendencias();
 };
 
 $('t-aberto').onclick = (ev) => {
-  const ir = ev.target.dataset.ir;
-  if (!ir) return;
+  const ir = ev.target.closest('button')?.dataset.ir; if (!ir) return;
   const [emp, data] = ir.split('|');
   $('e-pessoa').value = emp;
   $('e-mes').value = data.slice(0,7);
-  document.querySelector('nav button[data-aba=espelho]').click();
+  document.querySelector('nav.abas button[data-aba=espelho]').click();
 };
-['pd-ini','pd-fim'].forEach(id => $(id).onchange = carregarPendencias);
 
-/* ================= RELATÓRIOS ================= */
+/* ===================== RELATÓRIOS ===================== */
 async function carregarRelatorios(){
   const ini = $('r-ini').value, fim = $('r-fim').value;
 
-  const { data: resumo } = await P.rpc('resumo_equipe', { p_ini:ini, p_fim:fim });
-  $('t-resumo').innerHTML = (resumo ?? []).map(r => `<tr>
+  const { data: resumo, error } = await P.rpc('resumo_equipe', { p_ini:ini, p_fim:fim });
+  if (error) return recado(traduzir(error.message), 'erro');
+  $('t-resumo').innerHTML = (resumo ?? []).length ? resumo.map(r => `<tr>
     <td class="destaque" data-rotulo=""><strong>${esc(r.nome)}</strong>${r.cargo ? `<div class="mudo" style="font-size:12.5px">${esc(r.cargo)}</div>` : ''}</td>
     <td class="n" data-rotulo="Dias previstos">${r.dias_previstos}</td>
     <td class="n" data-rotulo="Trabalhados">${r.dias_trabalhados}</td>
     <td class="n ${r.faltas ? 'neg' : ''}" data-rotulo="Faltas">${r.faltas}</td>
-    <td class="n ${r.qtd_atrasos ? 'neg' : ''}">${r.qtd_atrasos}</td>
+    <td class="n ${r.qtd_atrasos ? 'neg' : ''}" data-rotulo="Atrasos">${r.qtd_atrasos}</td>
     <td class="n" data-rotulo="Min. atraso">${hm(r.atraso_total_min)}</td>
     <td class="n" data-rotulo="Horas">${hm(r.trabalhado_min)}</td>
     ${saldoCel(r.saldo_periodo_min)}
-    <td class="n ${r.intervalo_irregular ? 'neg' : ''}">${r.intervalo_irregular}</td>
-    <td class="n ${r.dias_em_aberto ? 'neg' : ''}">${r.dias_em_aberto}</td>
-  </tr>`).join('');
+    <td class="n ${r.intervalo_irregular ? 'neg' : ''}" data-rotulo="Interv. curto">${r.intervalo_irregular}</td>
+    <td class="n ${r.dias_em_aberto ? 'neg' : ''}" data-rotulo="Em aberto">${r.dias_em_aberto}</td>
+  </tr>`).join('') : '<tr><td colspan="10" class="vazio">Nenhuma pessoa ativa no período.</td></tr>';
 
   const { data: rec } = await P.rpc('recorrencia_atrasos', { p_ini:ini, p_fim:fim });
   const porPessoa = {};
-  for (const r of rec ?? []){
-    (porPessoa[r.nome] ??= {})[r.dia_semana] = r;
-  }
+  for (const r of rec ?? []) (porPessoa[r.nome] ??= {})[r.dia_semana] = r;
   const cab = '<div></div>' + [1,2,3,4,5,6].map(d => `<div class="cab">${DOW[d]}</div>`).join('');
   const corpo = Object.entries(porPessoa).map(([nome, dias]) =>
     `<div class="quem">${esc(nome)}</div>` + [1,2,3,4,5,6].map(d => {
@@ -682,52 +1011,169 @@ async function carregarRelatorios(){
         ? 'background:var(--rosa);border-color:var(--vermelho);color:var(--vermelho-escuro);font-weight:700'
         : ''}" title="média de ${r.atraso_medio_min} min">${r.ocorrencias}/${r.dias_no_periodo}</div>`;
     }).join('')).join('');
-
-  $('mapa-semana').innerHTML = Object.keys(porPessoa).length
-    ? cab + corpo
+  $('mapa-semana').innerHTML = Object.keys(porPessoa).length ? cab + corpo
     : '<p class="vazio" style="grid-column:1/-1">Nenhum atraso registrado no período.</p>';
 
   const { data: faltas } = await P.rpc('relatorio_faltas', { p_ini:ini, p_fim:fim });
   $('t-faltas').innerHTML = (faltas ?? []).length ? faltas.map(f => `<tr>
-    <td>${esc(f.nome)}</td>
-    <td class="hora">${dia(f.data)}</td>
-    <td class="mudo">${DOW[f.dia_semana]}</td>
-    <td><span class="tag ${f.situacao === 'ausência abonada' ? 'neutra' : 'alerta'}">${esc(f.situacao)}</span></td>
-    <td class="mudo">${esc(f.justificativa) || '—'}</td>
-  </tr>`).join('')
-    : '<tr><td colspan="5" class="vazio">Nenhuma falta no período.</td></tr>';
+    <td class="destaque" data-rotulo="">${esc(f.nome)}</td>
+    <td data-rotulo="Data">${dia(f.data)}</td>
+    <td class="mudo" data-rotulo="Dia">${DOW[f.dia_semana]}</td>
+    <td data-rotulo="Situação"><span class="tag ${f.situacao === 'ausência abonada' ? 'neutra' : 'alerta'}">${esc(f.situacao)}</span></td>
+    <td class="mudo" data-rotulo="Justificativa">${esc(f.justificativa) || '—'}</td>
+  </tr>`).join('') : '<tr><td colspan="5" class="vazio">Nenhuma falta no período.</td></tr>';
 }
-['r-ini','r-fim'].forEach(id => $(id).onchange = carregarRelatorios);
+$('r-ini').onchange = carregarRelatorios;
+$('r-fim').onchange = carregarRelatorios;
 
-/* ================= BOOT ================= */
+/* ===================== CONFIGURAÇÕES ===================== */
+async function carregarConfig(){
+  const { data: disp } = await P.rpc('listar_dispositivos');
+  $('t-dispositivos').innerHTML = (disp ?? []).length ? disp.map(d => `<tr class="${d.ativo?'':'inativo'}">
+    <td class="destaque" data-rotulo="">${esc(d.nome)}</td>
+    <td data-rotulo="Aparelho">${esc(d.apelido) || '—'}</td>
+    <td data-rotulo="Registrado">${dia(d.criado_em.slice(0,10))}</td>
+    <td data-rotulo="Última marcação">${d.ultima_marcacao ? dia(d.ultima_marcacao.slice(0,10)) : '<span class="mudo">nunca</span>'}</td>
+    <td data-rotulo="Situação">${d.ativo ? '<span class="tag ok">ativo</span>' : '<span class="tag neutra">revogado</span>'}</td>
+    <td data-rotulo=""><div class="acoes-linha">${d.ativo
+      ? `<button class="leve" data-revogar="${d.id}">Revogar</button>` : ''}</div></td>
+  </tr>`).join('') : '<tr><td colspan="6" class="vazio">Nenhum aparelho registrado ainda.</td></tr>';
+
+  const ano = $('f-ano').value || new Date().getFullYear();
+  const { data: fer } = await P.from('feriados').select('data,nome,tipo')
+    .gte('data', `${ano}-01-01`).lte('data', `${ano}-12-31`).order('data');
+  $('t-feriados').innerHTML = (fer ?? []).length ? fer.map(f => `<tr>
+    <td class="destaque" data-rotulo="">${dia(f.data)} <span class="mudo">${DOW[new Date(f.data+'T12:00').getDay()]}</span></td>
+    <td data-rotulo="Nome">${esc(f.nome)}</td>
+    <td data-rotulo="Tipo"><span class="tag neutra">${esc(f.tipo)}</span></td>
+    <td data-rotulo=""><div class="acoes-linha"><button class="leve" data-delferiado="${f.data}">Remover</button></div></td>
+  </tr>`).join('') : `<tr><td colspan="4" class="vazio">Nenhum feriado cadastrado em ${ano}.</td></tr>`;
+
+  const { data: jd } = await P.from('jornada_dias')
+    .select('dia_semana,entrada,saida_almoco,volta_almoco,saida,carga_min,jornadas(id,nome,tolerancia_min)');
+  const porJornada = {};
+  for (const d of jd ?? []){
+    const j = d.jornadas; if (!j) continue;
+    (porJornada[j.nome] ??= { tol:j.tolerancia_min, dias:[] }).dias.push(d);
+  }
+  $('t-jornadas').innerHTML = Object.entries(porJornada).map(([nome, j]) => {
+    const d = j.dias.sort((a,b) => a.dia_semana - b.dia_semana)[0];
+    const dows = j.dias.map(x => DOW[x.dia_semana]).join(', ');
+    return `<tr>
+      <td class="destaque" data-rotulo="">${esc(nome)}</td>
+      <td data-rotulo="Dias">${dows}</td>
+      <td data-rotulo="Horário">${d.entrada.slice(0,5)} às ${d.saida.slice(0,5)}
+        ${d.saida_almoco ? `<div class="mudo" style="font-size:12.5px">almoço ${d.saida_almoco.slice(0,5)}–${d.volta_almoco.slice(0,5)}</div>` : ''}</td>
+      <td class="n" data-rotulo="Carga diária">${hm(d.carga_min)}</td>
+      <td class="n" data-rotulo="Tolerância">${j.tol} min</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="vazio">Nenhum turno cadastrado.</td></tr>';
+
+  const { data: ac } = await P.from('acessos').select('email,papel,observacao').order('email');
+  $('t-acessos').innerHTML = (ac ?? []).length ? ac.map(a => `<tr>
+    <td class="destaque" data-rotulo="">${esc(a.email)}</td>
+    <td data-rotulo="Papel"><span class="tag ${a.papel === 'coordenacao' ? 'ok' : 'neutra'}">${esc(a.papel)}</span></td>
+    <td class="mudo" data-rotulo="Observação">${esc(a.observacao) || '—'}</td>
+    <td data-rotulo=""><div class="acoes-linha">${a.email === EU?.email
+      ? '<span class="mudo" style="font-size:12.5px">você</span>'
+      : `<button class="leve" data-delacesso="${esc(a.email)}">Remover</button>`}</div></td>
+  </tr>`).join('') : '<tr><td colspan="4" class="vazio">Nenhum acesso administrativo cadastrado.</td></tr>';
+}
+$('f-ano').onchange = carregarConfig;
+
+$('t-dispositivos').onclick = async (ev) => {
+  const id = ev.target.closest('button')?.dataset.revogar; if (!id) return;
+  const r = await confirmar({
+    titulo:'Revogar aparelho',
+    texto:'O passkey deixa de valer imediatamente. A pessoa continua conseguindo bater '
+      + 'ponto — a marcação nunca é bloqueada — mas o registro entra na fila de revisão '
+      + 'até ela cadastrar o aparelho novo.',
+    okTexto:'Revogar', motivo:{ rotulo:'Motivo (perda, troca de celular…)' },
+  });
+  if (!r) return;
+  if (await escrever(P.rpc('revogar_dispositivo', { p_disp:id, p_motivo:r.motivo }), 'Aparelho revogado.'))
+    carregarConfig();
+};
+
+$('btn-novo-feriado').onclick = () => {
+  $('fr-data').value = ''; $('fr-nome').value = ''; $('fr-erro').textContent = '';
+  $('dlg-feriado').showModal();
+};
+$('fr-salvar').onclick = async () => {
+  if (!$('fr-data').value) return ($('fr-erro').textContent = 'Informe a data.');
+  if ($('fr-nome').value.trim().length < 3) return ($('fr-erro').textContent = 'Informe o nome do feriado.');
+  const { data: rep } = await P.from('rep').select('id').limit(1).single();
+  if (await escrever(P.from('feriados').insert({
+    rep_id: rep.id, data:$('fr-data').value,
+    nome:$('fr-nome').value.trim(), tipo:$('fr-tipo').value }), 'Feriado cadastrado.')){
+    $('dlg-feriado').close();
+    $('f-ano').value = $('fr-data').value.slice(0,4);
+    carregarConfig();
+  }
+};
+$('t-feriados').onclick = async (ev) => {
+  const d = ev.target.closest('button')?.dataset.delferiado; if (!d) return;
+  const r = await confirmar({
+    titulo:'Remover feriado',
+    texto:`O dia ${dia(d)} volta a contar como dia útil, e a apuração de quem trabalhou `
+      + 'nele será refeita na próxima consulta ao espelho.', okTexto:'Remover' });
+  if (!r) return;
+  if (await escrever(P.from('feriados').delete().eq('data', d), 'Feriado removido.')) carregarConfig();
+};
+
+$('btn-novo-acesso').onclick = () => {
+  $('ac-email').value = ''; $('ac-obs').value = ''; $('ac-erro').textContent = '';
+  $('dlg-acesso').showModal();
+};
+$('ac-salvar').onclick = async () => {
+  const email = $('ac-email').value.trim().toLowerCase();
+  if (!emailOk(email)) return ($('ac-erro').textContent = 'E-mail em formato inválido.');
+  if (await escrever(P.from('acessos').upsert({
+    email, papel:$('ac-papel').value, observacao:$('ac-obs').value.trim() || null }),
+    'Acesso concedido. Vale a partir do próximo login da pessoa.')){
+    $('dlg-acesso').close(); carregarConfig();
+  }
+};
+$('t-acessos').onclick = async (ev) => {
+  const email = ev.target.closest('button')?.dataset.delacesso; if (!email) return;
+  const r = await confirmar({
+    titulo:'Remover acesso administrativo',
+    texto:`${email} perde o acesso ao painel no próximo login. O cadastro de pessoa e o `
+      + 'histórico de ponto não são afetados.', okTexto:'Remover' });
+  if (!r) return;
+  if (await escrever(P.from('acessos').delete().eq('email', email), 'Acesso removido.')) carregarConfig();
+};
+
+/* ===================== BOOT ===================== */
 (async () => {
   const { data:{ session } } = await sb.auth.getSession();
-  if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./admin.html'); return; }
+  if (!session){ location.replace('./entrar.html?para=' + encodeURIComponent('./admin.html')); return; }
 
   const { data: eu } = await P.from('empregados')
-    .select('id,nome').eq('auth_user_id', session.user.id).maybeSingle();
+    .select('id,nome,email').eq('auth_user_id', session.user.id).maybeSingle();
   EU = eu;
 
-  // Sem cadastro próprio não dá para assinar ajuste: criado_por ficaria nulo.
-  if (!EU) {
+  if (session.user.app_metadata?.papel !== 'coordenacao')
+    recado('Seu login não tem papel de coordenação: você consegue consultar, mas não editar.', 'erro');
+
+  if (!EU){
     const av = document.createElement('div');
-    av.className = 'aviso';
-    av.style.margin = '18px 24px 0';
-    av.innerHTML = 'Seu login ainda não está ligado a um cadastro de pessoa. '
-      + 'Cadastre-se na aba Equipe usando <strong>' + esc(session.user.email)
-      + '</strong> como e-mail de acesso — o vínculo acontece sozinho. '
-      + 'Até lá você consegue consultar, mas não registrar ajustes.';
+    av.className = 'aviso'; av.style.margin = '18px 24px 0';
+    av.innerHTML = 'Seu login ainda não está ligado a um cadastro de pessoa. Cadastre-se na '
+      + `aba Equipe usando <strong>${esc(session.user.email)}</strong> como e-mail de acesso `
+      + '— o vínculo acontece sozinho. Até lá você consulta, mas não registra ajustes.';
     document.querySelector('main').prepend(av);
   }
 
-  const { data: j } = await P.from('jornadas').select('id,nome').eq('ativa', true);
+  const { data: j } = await P.from('jornadas').select('id,nome').eq('ativa', true).order('nome');
   JORNADAS = j ?? [];
 
   const hoje = new Date();
   const primeiro = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().slice(0,10);
   const hojeStr = hoje.toISOString().slice(0,10);
   $('e-mes').value = hojeStr.slice(0,7);
-  ['b-ini','pd-ini','r-ini'].forEach(id => $(id).value = primeiro);
+  $('f-ano').value = hoje.getFullYear();
+  ['pd-ini','r-ini'].forEach(id => $(id).value = primeiro);
   ['b-fim','pd-fim','r-fim'].forEach(id => $(id).value = hojeStr);
 
   await carregarEquipe();

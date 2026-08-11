@@ -1,0 +1,20 @@
+-- =====================================================================
+-- Migration 012: ciclo de vida do empregado, validação e políticas
+--
+-- MOTIVO: o desligamento era feito por três UPDATEs separados no cliente.
+-- Dois deles eram barrados pelo RLS e falhavam em SILÊNCIO — o passkey de
+-- quem saía continuava ativo, e ninguém percebia porque o frontend não
+-- checava o campo `error`. Operação de várias etapas com consequência de
+-- segurança não pode viver no navegador: vira função única e atômica.
+--
+-- Ver o corpo completo aplicado no banco. Resumo do que entra:
+--   · ponto.cpf_valido()          dígitos verificadores de verdade
+--   · constraints de CPF, e-mail, nome, admissão e demissão
+--   · política de UPDATE em dispositivos (não existia)
+--   · política de UPDATE em biometria_facial para a coordenação
+--   · ponto.desligar_empregado()  atômico, com auditoria
+--   · ponto.reativar_empregado()  biometria NÃO volta, de propósito
+--   · ponto.revogar_dispositivo() perda ou troca de celular
+--   · ponto.cancelar_ajuste()     a política existia, faltava a operação
+--   · ponto.listar_dispositivos() insumo da tela de configurações
+--   · revoke insert on dispositivos: GRANT sem política é permissão morta
