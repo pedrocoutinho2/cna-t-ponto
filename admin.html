@@ -17,41 +17,41 @@ h1.titulo{font-size:16px; font-weight:600}
 .filtros input,.filtros select{width:auto; min-width:150px}
 .empurra{margin-left:auto}
 #e-indicadores{margin-bottom:20px}
-tr.fds td{background:var(--superficie); color:var(--cinza)}
-tr.problema td:first-child{box-shadow:inset 3px 0 0 var(--vermelho)}
+tr.fds td{background:var(--surface); color:var(--gray)}
+tr.problema td:first-child{box-shadow:inset 3px 0 0 var(--red)}
 tr.inativo td{opacity:.62}
-.vazio{padding:34px 14px; color:var(--cinza); text-align:center; line-height:1.55}
+.vazio{padding:34px 14px; color:var(--gray); text-align:center; line-height:1.55}
 h2.secao{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
-  text-transform:uppercase; color:var(--cinza); margin:30px 0 12px}
+  text-transform:uppercase; color:var(--gray); margin:30px 0 12px}
 .acoes-linha{display:flex; gap:7px; justify-content:flex-end; flex-wrap:wrap}
 .acoes-linha button{padding:7px 13px; font-size:13px; min-height:0}
 
 .semana{display:grid; grid-template-columns:170px repeat(6,1fr); gap:4px; align-items:center}
 .semana .cab{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.1em;
-  text-transform:uppercase; color:var(--cinza); text-align:center}
+  text-transform:uppercase; color:var(--gray); text-align:center}
 .semana .quem{font-size:14px; padding-right:10px}
 .cel{height:40px; display:grid; place-items:center; font-family:var(--display); font-weight:500;
-  font-size:13px; border:1px solid var(--linha); background:var(--branco); border-radius:6px;
+  font-size:13px; border:1px solid var(--line); background:var(--white); border-radius:6px;
   font-variant-numeric:tabular-nums}
 
-dialog{border:1px solid var(--linha); background:var(--branco); padding:0; border-radius:12px;
-  max-width:480px; width:calc(100% - 32px); color:var(--tinta); box-shadow:var(--sombra)}
+dialog{border:1px solid var(--line); background:var(--white); padding:0; border-radius:12px;
+  max-width:480px; width:calc(100% - 32px); color:var(--ink); box-shadow:var(--shadow-2)}
 dialog::backdrop{background:rgba(26,26,26,.45)}
 dialog h2{font-size:19px; font-weight:600; padding:22px 24px 0}
 dialog .corpo{padding:18px 24px}
 dialog .rodape{padding:16px 24px 22px; display:flex; gap:10px; justify-content:flex-end}
 dialog .nota{margin-top:14px}
-dialog p.erro{color:var(--vermelho-escuro); font-size:13.5px; margin-top:12px; min-height:1.2em}
+dialog p.erro{color:var(--redDark); font-size:13.5px; margin-top:12px; min-height:1.2em}
 
 /* Recado no rodapé em vez de alert(): alert trava a aba inteira e alguns
    navegadores o bloqueiam quando disparado de dentro de um <dialog>. */
 #avisos{position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
   display:flex; flex-direction:column; gap:9px; z-index:60; width:min(440px,calc(100% - 28px))}
-.recado{background:var(--tinta); color:var(--branco); padding:13px 16px; border-radius:8px;
-  font-size:14px; line-height:1.45; box-shadow:var(--sombra); display:flex; gap:11px;
+.recado{background:var(--ink); color:var(--white); padding:13px 16px; border-radius:8px;
+  font-size:14px; line-height:1.45; box-shadow:var(--shadow-2); display:flex; gap:11px;
   align-items:flex-start; animation:sobe .22s ease both}
-.recado.erro{background:var(--vermelho-escuro)}
-.recado.ok{background:var(--azul)}
+.recado.erro{background:var(--redDark)}
+.recado.ok{background:var(--blue)}
 .recado button{background:none; border:0; color:inherit; opacity:.7; cursor:pointer;
   font-size:19px; line-height:1; padding:0 2px; margin-left:auto}
 @keyframes sobe{from{opacity:0; transform:translateY(11px)}to{opacity:1; transform:none}}
@@ -815,7 +815,7 @@ async function listarAjustesDoDia(){
   const vivos = (data ?? []).filter(a => !a.cancelado_em);
   $('ajustes-do-dia').innerHTML = vivos.length ? `
     <p class="rotulo" style="margin-bottom:8px">Ajustes já lançados</p>
-    ${vivos.map(a => `<div style="display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--linha)">
+    ${vivos.map(a => `<div style="display:flex;gap:11px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)">
       <div style="flex:1">
         <strong style="font-size:13.5px">${esc(a.tipo)}</strong>${a.horario ? ` · ${hora(a.horario)}` : a.minutos ? ` · ${hm(a.minutos)}` : ''}
         <div class="mudo" style="font-size:12.5px;margin-top:2px">${esc(a.justificativa)}</div>
@@ -1044,7 +1044,7 @@ async function carregarRelatorios(){
       if (!r) return '<div class="cel mudo">·</div>';
       const forte = r.taxa >= 0.5;
       return `<div class="cel" style="${forte
-        ? 'background:var(--rosa);border-color:var(--vermelho);color:var(--vermelho-escuro);font-weight:700'
+        ? 'background:var(--pastelRed);border-color:var(--red);color:var(--redDark);font-weight:700'
         : ''}" title="média de ${r.atraso_medio_min} min">${r.ocorrencias}/${r.dias_no_periodo}</div>`;
     }).join('')).join('');
   $('mapa-semana').innerHTML = Object.keys(porPessoa).length ? cab + corpo
