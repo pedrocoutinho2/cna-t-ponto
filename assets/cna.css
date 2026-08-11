@@ -218,7 +218,6 @@ td.n,th.n{text-align:right}
   /* Alvo de toque de 44px é o mínimo da Apple e da WCAG 2.5.5.
      Botão de 36px na recepção com a mão ocupada erra o alvo. */
   button.acao,button.leve{min-height:48px; padding:13px 20px; font-size:15px}
-  nav.abas button, nav.abas a{min-height:44px; display:flex; align-items:center}
 
   header.topo{padding:11px 15px; gap:11px}
   .marca img{height:26px}
@@ -277,4 +276,74 @@ td.n,th.n{text-align:right}
 @media (max-width:420px){
   .marca .unidade{display:none}
   .indicadores{grid-template-columns:1fr 1fr}
+}
+
+
+/* =====================================================================
+   MENU LATERAL (mobile)
+   Sete itens numa barra horizontal viravam duas linhas de alvos pequenos
+   e o cabeçalho comia um terço da tela. Gaveta resolve: o cabeçalho volta
+   a ter uma linha e cada item ganha altura de dedo.
+   ===================================================================== */
+
+.hamburguer{
+  display:none; background:none; border:0; cursor:pointer; padding:9px;
+  margin:-9px -4px -9px -9px; border-radius:8px; color:var(--tinta);
+  line-height:0; flex:0 0 auto;
+}
+.hamburguer:focus-visible{outline:2px solid var(--azul); outline-offset:1px}
+.hamburguer svg{width:23px; height:23px; display:block}
+
+.veu{
+  position:fixed; inset:0; background:rgba(26,26,26,.45); z-index:39;
+  opacity:0; transition:opacity .22s ease;
+}
+.veu.aberto{opacity:1}
+.veu[hidden]{display:none}
+
+@media (max-width:860px){
+  .hamburguer{display:block}
+
+  header.topo{gap:12px; flex-wrap:nowrap}
+  header.topo h1.titulo{
+    font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  header.topo .marca{flex:0 0 auto}
+
+  nav.abas{
+    position:fixed; top:0; left:0; bottom:0; width:min(82vw,320px);
+    margin:0; background:var(--branco); border-right:1px solid var(--linha);
+    z-index:40; display:flex; flex-direction:column; gap:0;
+    padding:calc(16px + env(safe-area-inset-top)) 0 calc(16px + env(safe-area-inset-bottom));
+    transform:translateX(-100%); transition:transform .24s cubic-bezier(.3,.8,.4,1);
+    overflow-y:auto; box-shadow:0 0 40px -12px rgba(26,26,26,.4);
+    visibility:hidden;
+  }
+  nav.abas.aberta{transform:none; visibility:visible}
+
+  nav.abas::before{
+    content:'Menu'; font-family:var(--display); font-size:10px; font-weight:600;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--cinza);
+    padding:0 22px 14px; border-bottom:1px solid var(--linha); margin-bottom:8px;
+  }
+
+  nav.abas button, nav.abas a{
+    width:100%; min-height:52px; display:flex; align-items:center;
+    padding:0 22px; border-radius:0; border-bottom:0; font-size:16px;
+    text-align:left; justify-content:flex-start; color:var(--tinta);
+    border-left:3px solid transparent;
+  }
+  nav.abas button[aria-selected=true]{
+    color:var(--vermelho); border-left-color:var(--vermelho);
+    background:var(--rosa); border-bottom-color:transparent;
+  }
+  /* Separa os atalhos externos das abas do painel. Usa o combinador de
+     irmão em vez de :first-of-type porque na tela de cadastro a nav só
+     tem links — ali a linha divisória não faria sentido. */
+  nav.abas button + a{
+    margin-top:10px; padding-top:16px; border-top:1px solid var(--linha);
+  }
+  nav.abas #sair{color:var(--vermelho-escuro); margin-top:auto}
+
+  body.travado{overflow:hidden}
 }

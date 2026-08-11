@@ -71,14 +71,20 @@ h1.titulo{font-size:16px; font-weight:600}
 <body>
 
 <header class="topo">
+  <button class="hamburguer" id="menu-abrir" aria-label="Abrir menu" aria-expanded="false" aria-controls="gaveta">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M3 6h18M3 12h18M3 18h18"/>
+    </svg>
+  </button>
   <div class="marca"><img class="colorida" src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><img class="branca" src="./assets/logo-cna-branca.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><span class="lockup"><b>CNA</b> <i>idiomas</i></span><span class="unidade">Taquara</span></div>
   <h1 class="titulo">Cadastro biométrico</h1>
-  <nav class="abas">
+  <nav class="abas" id="gaveta">
     <a href="./admin.html">Administração</a>
     <a href="./">Bater ponto</a>
     <a href="#" id="sair">Sair</a>
   </nav>
 </header>
+<div class="veu" id="veu" hidden></div>
 
 <div id="avisos" aria-live="polite"></div>
 
@@ -220,6 +226,36 @@ let descritores = [];
 
 document.getElementById('sair').addEventListener('click', async (e) => {
   e.preventDefault(); await sb.auth.signOut(); location.replace('./entrar.html');
+});
+
+/* ---------- menu lateral ----------
+   Fecha ao escolher um item, ao tocar fora e no Esc. Trava a rolagem do
+   fundo enquanto está aberto: sem isso o conteúdo desliza atrás da gaveta
+   e a pessoa perde a posição na lista. */
+const gaveta = document.getElementById('gaveta');
+const veu = document.getElementById('veu');
+const btnMenu = document.getElementById('menu-abrir');
+
+function menu(abrir){
+  gaveta.classList.toggle('aberta', abrir);
+  btnMenu.setAttribute('aria-expanded', String(abrir));
+  document.body.classList.toggle('travado', abrir);
+  if (abrir){
+    veu.hidden = false;
+    requestAnimationFrame(() => veu.classList.add('aberto'));
+    gaveta.querySelector('button,a')?.focus();
+  } else {
+    veu.classList.remove('aberto');
+    setTimeout(() => { veu.hidden = true; }, 220);
+  }
+}
+btnMenu.addEventListener('click', () => menu(!gaveta.classList.contains('aberta')));
+veu.addEventListener('click', () => menu(false));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && gaveta.classList.contains('aberta')) menu(false);
+});
+gaveta.addEventListener('click', (e) => {
+  if (e.target.closest('button,a') && window.matchMedia('(max-width:860px)').matches) menu(false);
 });
 
 /* ---------- passo 1 ---------- */
