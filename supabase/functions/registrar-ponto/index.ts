@@ -52,7 +52,7 @@ function ipDaRequisicao(req: Request): string | null {
 // Confere se o traço é fisicamente plausível: precisa haver variação real
 // nos ângulos e um intervalo de tempo compatível com movimento humano.
 function traceCoerente(t: Corpo["liveness"]["trace"], acoes: string[]): boolean {
-  if (t.length < 12) return false;
+  if (t.length < 10) return false;
   const dur = t[t.length - 1].t - t[0].t;
   if (dur < 1200 || dur > 40000) return false;
 
@@ -64,7 +64,10 @@ function traceCoerente(t: Corpo["liveness"]["trace"], acoes: string[]): boolean 
   const precisaVirar = acoes.some((a) => a.startsWith("virar"));
   const precisaPiscar = acoes.includes("piscar");
 
-  if (precisaVirar && amplitudeYaw < 18) return false;   // graus
+  // 12 graus, alinhado ao aceite do cliente (15 a partir do rosto de frente).
+  // Estava em 18 e derrubava para revisão marcações em que a pessoa cumpriu
+  // a ação, só que sem exagerar no giro.
+  if (precisaVirar && amplitudeYaw < 12) return false;   // graus
   if (precisaPiscar && amplitudeEar < 0.12) return false;
 
   // quadros idênticos = vídeo em loop ou frame congelado
