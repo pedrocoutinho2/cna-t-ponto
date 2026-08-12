@@ -773,6 +773,8 @@ async function carregarEspelho(){
     else if (!l.apurado)  situacao = '<span class="tag alerta">em aberto</span>';
     else if (l.falta)     situacao = '<span class="tag alerta">falta</span>';
     else if (l.abono_min) situacao = '<span class="tag neutra">abonado</span>';
+    else if (l.inconsistencias?.includes('sem jornada cadastrada para este dia'))
+                          situacao = '<span class="tag alerta">sem jornada</span>';
     else if (l.carga_prev_min === 0) situacao = '<span class="tag neutra">folga</span>';
     const notas = (l.inconsistencias ?? []).map(i =>
       `<div class="mudo" style="font-size:12px;margin-top:4px">${esc(i)}</div>`).join('');
