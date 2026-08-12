@@ -1,15 +1,18 @@
 // =====================================================================
 // POST /desafio-liveness
-// Emite um desafio de vivacidade: nonce de uso único + 2 ações sorteadas
-// pelo servidor, com validade de 40 s. O cliente precisa cumprir as ações
-// na ordem sorteada. Foto impressa ou vídeo gravado não passa, porque o
-// cliente não sabe de antemão qual sequência vai cair.
+// Emite um desafio de vivacidade: nonce de uso único + 1 ação sorteada
+// pelo servidor, com validade de 40 s. Foto impressa ou vídeo gravado não
+// passa, porque o cliente não sabe de antemão qual ação vai cair.
+//
+// "piscar" saiu da lista: o olho fechado dura de 100 a 150 ms e o detector
+// no celular gasta mais que isso por quadro, então o quadro decisivo caía
+// entre duas leituras e a pessoa ficava presa no desafio. Uma ação bem
+// detectada prova mais vivacidade que duas que travam.
 // =====================================================================
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const ACOES = [
-  "piscar",
   "virar_direita",
   "virar_esquerda",
   "aproximar",
@@ -17,6 +20,7 @@ const ACOES = [
 ] as const;
 
 const TTL_SEGUNDOS = 40;
+const QUANTIDADE_ACOES = 1;
 
 const cors = {
   "Access-Control-Allow-Origin": Deno.env.get("ORIGEM_PWA") ?? "*",
@@ -69,7 +73,7 @@ Deno.serve(async (req) => {
   }
 
   const nonce = crypto.randomUUID() + "." + crypto.randomUUID();
-  const acoes = sortear(ACOES, 2);
+  const acoes = sortear(ACOES, QUANTIDADE_ACOES);
   const expira = new Date(Date.now() + TTL_SEGUNDOS * 1000);
 
   const { data: desafio, error } = await admin
