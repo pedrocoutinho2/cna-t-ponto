@@ -208,8 +208,11 @@ const CFG = {
 const sb = createClient(CFG.supabaseUrl, CFG.supabaseAnon);
 const $ = (id) => document.getElementById(id);
 
+/* O piscar saiu do sorteio. O olho fechado dura de 100 a 150 ms e o detector
+   no celular leva mais que isso por quadro, entao o quadro decisivo caia entre
+   duas leituras e a acao nunca fechava. O servidor agora sorteia uma acao so,
+   entre as quatro que o detector consegue acompanhar. */
 const ACAO = {
-  piscar:         { titulo:'Pisque os dois olhos',         dica:'Feche bem os olhos por um instante' },
   virar_direita:  { titulo:'Vire o rosto para a direita',  dica:'Devagar, sem tirar o rosto do oval' },
   virar_esquerda: { titulo:'Vire o rosto para a esquerda', dica:'Devagar, sem tirar o rosto do oval' },
   aproximar:      { titulo:'Aproxime o rosto da câmera',   dica:'Chegue perto até preencher o oval' },
@@ -220,11 +223,9 @@ const ACAO = {
 // ter sorteado a sequencia na hora, nao a pessoa acertar um angulo exato.
 const LIMIAR = {
   yaw:      15,    // graus de giro em relacao ao rosto de frente
-  earFecha: 0.62,  // olho considerado fechado abaixo desta fracao do normal
-  earFundo: 0.55,  // fechou tanto que ja conta sozinho, sem esperar reabrir
-  earAbre:  0.85,  // olho reaberto
   area:     1.28,  // rosto 28% maior que no inicio
   sorriso:  0.55,
+  amostras: 26,    // leituras minimas no traco antes de fechar a marcacao
 };
 
 let stream = null, modelosProntos = false, abortar = false;
@@ -363,7 +364,7 @@ async function medirNeutro(ctx, fim){
 
 async function aguardarAcao(acao, base, ctx, fim){
   instruir(ACAO[acao].titulo, ACAO[acao].dica);
-  let piscouEm = 0, seguidas = 0;
+  let seguidas = 0;
 
   while (Date.now() < fim && !abortar){
     ctx.contador.textContent = Math.max(0, Math.ceil((fim - Date.now())/1000)) + 's';
@@ -377,17 +378,11 @@ async function aguardarAcao(acao, base, ctx, fim){
       case 'virar_esquerda': ok = base.yaw - m.yaw > LIMIAR.yaw; break;
       case 'aproximar':      ok = m.area > base.area * LIMIAR.area; break;
       case 'sorrir':         ok = m.feliz > LIMIAR.sorriso; break;
-      case 'piscar':
-        if (m.ear < base.ear * LIMIAR.earFundo){ piscouEm = Date.now(); ok = true; }
-        else if (m.ear < base.ear * LIMIAR.earFecha){ piscouEm = Date.now(); }
-        else ok = piscouEm > 0 && Date.now() - piscouEm < 2500 && m.ear > base.ear * LIMIAR.earAbre;
-        break;
     }
 
-    // duas leituras seguidas para não aceitar um tremor de detecção;
-    // o piscar passa na primeira, porque o olho fechado dura pouco
+    // duas leituras seguidas para não aceitar um tremor de detecção
     seguidas = ok ? seguidas + 1 : 0;
-    if (seguidas >= (acao === 'piscar' ? 1 : 2)) return true;
+    if (seguidas >= 2) return true;
     await espera(30);
   }
   return false;
@@ -405,7 +400,7 @@ async function cumprirDesafio(acoes, prazoMs){
   const fim = Date.now() + prazoMs;
 
   for (let i = 0; i < acoes.length; i++){
-    $('passo').textContent = `Passo ${i+1} de ${acoes.length}`;
+    $('passo').textContent = acoes.length > 1 ? `Passo ${i+1} de ${acoes.length}` : '';
 
     const base = await medirNeutro(ctx, fim);
     if (!base || abortar) return null;
@@ -423,6 +418,14 @@ async function cumprirDesafio(acoes, prazoMs){
   // falhar aqui joga fora um desafio que a pessoa já cumpriu inteiro.
   $('contador').textContent = '';
   instruir('Registrando…', 'Fique parado mais um instante');
+
+  // Com uma acao so o traco pode sair curto demais para o servidor conferir
+  // que o movimento e de gente. Estas leituras a mais sao quadros reais,
+  // colhidos enquanto a pessoa ja esta parada para a foto.
+  const ateTraco = Date.now() + 4000;
+  while (ctx.trace.length < LIMIAR.amostras && Date.now() < ateTraco && !abortar){
+    if (!await amostrar(ctx)) await espera(60);
+  }
 
   let final = null;
   for (let i = 0; i < 10 && !final && !abortar; i++){
