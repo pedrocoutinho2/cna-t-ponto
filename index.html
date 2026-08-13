@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF">
-<title>Ponto · CNA Taquara</title>
+<title>Bater ponto · CNA Taquara</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./assets/cna.css">
@@ -128,6 +128,19 @@ button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
 .recibo .revisao{margin-top:15px; padding:12px 14px; border-left:3px solid var(--vermelho);
   background:var(--rosa); border-radius:0 6px 6px 0; font-size:13px; line-height:1.45; color:var(--tinta)}
 
+
+/* ---- terminal ---- */
+.setup{padding:22px}
+.setup h2{font-family:var(--display); font-size:17px; font-weight:600; margin-bottom:10px}
+.setup p{font-size:13.5px; color:var(--cinza); line-height:1.55; margin-bottom:14px}
+.nomes{display:grid; gap:10px; padding:4px 22px 18px}
+.nomes button{width:100%; padding:16px 14px; font-family:var(--display); font-size:16px;
+  font-weight:600; background:var(--branco); color:var(--tinta); border:1px solid var(--linha);
+  border-radius:10px; cursor:pointer}
+.nomes button:active{background:var(--superficie)}
+.explica{padding:0 22px 16px; font-size:13px; color:var(--cinza); line-height:1.55}
+.terminal-nome{font-family:var(--display); font-size:12.5px; font-weight:500;
+  color:var(--cinza); text-align:right}
 </style>
 </head>
 <body>
@@ -135,12 +148,23 @@ button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
 <main class="cartao">
   <header class="topo">
     <div class="marca"><img class="colorida" src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><img class="branca" src="./assets/logo-cna-branca.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><span class="lockup"><b>CNA</b> <i>idiomas</i></span><span class="unidade">Taquara</span></div>
-    <span class="pessoa" id="pessoa">—</span>
+    <span class="terminal-nome" id="terminal-nome">—</span>
   </header>
 
   <section class="relogio">
     <div class="hora" id="hora">--:--<span class="seg">:--</span></div>
     <div class="data" id="data">—</div>
+  </section>
+
+  <!-- Primeira abertura: a coordenacao cola o token uma vez e ele fica no
+       aparelho. Nao e senha de pessoa, e credencial do celular. -->
+  <section class="setup" id="setup" hidden>
+    <h2>Este celular ainda não está autorizado</h2>
+    <p>Cole o código gerado na administração. Ele fica guardado neste aparelho e
+    ninguém precisa digitar nada depois.</p>
+    <label class="campo"><span>Código do terminal</span>
+      <input type="text" id="token" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <button class="bater" id="salvar-token">Autorizar este celular</button>
   </section>
 
   <div class="janela oculta" id="janela">
@@ -158,19 +182,16 @@ button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
     </div>
   </div>
 
-  <section class="pauta">
-    <h2>Marcações de hoje</h2>
-    <div id="lista"><p class="vazio">Nenhuma marcação registrada hoje.</p></div>
+  <!-- Caminho de excecao: o rosto nao bateu. O ponto e registrado do mesmo
+       jeito, porque o REP nao pode barrar marcacao. -->
+  <section id="declarar" hidden>
+    <p class="explica" id="declarar-recado"></p>
+    <div class="nomes" id="nomes"></div>
   </section>
 
-  <footer class="acao">
-    <button class="bater" id="registrar-aparelho" hidden>Registrar este celular</button>
+  <footer class="acao" id="rodape">
     <button class="bater" id="bater">Bater ponto</button>
     <p class="aviso" id="aviso">O horário registrado é o do servidor, não o do aparelho.</p>
-    <p class="aviso" style="margin-top:10px;display:flex;gap:16px;justify-content:center">
-      <a href="https://adm.cnataquara.com.br/rep.html" style="color:var(--cinza);padding:6px 4px">Administração</a>
-      <a href="#" id="sair" style="color:var(--cinza);padding:6px 4px">Sair</a>
-    </p>
   </footer>
 </main>
 
@@ -187,7 +208,7 @@ button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
       <dt>Código hash (SHA-256)</dt><dd id="rec-hash"></dd>
     </dl>
     <div class="botoes">
-      <button class="leve" id="rec-pdf">Baixar PDF</button>
+      <button class="leve" id="rec-salvar">Salvar comprovante</button>
       <button class="acao" id="rec-fechar">Concluir</button>
     </div>
   </div>
@@ -196,22 +217,27 @@ button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
 <script type="module">
 import * as faceapi from 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { startAuthentication, startRegistration } from 'https://esm.sh/@simplewebauthn/browser@13';
+
+/* =====================================================================
+   Terminal de ponto. Ninguem faz login aqui.
+
+   Quem autentica a chamada e o aparelho, pelo token guardado neste
+   navegador. Quem diz a pessoa e o rosto, comparado 1:N no servidor. O
+   navegador nunca decide identidade: ele so entrega o descritor e o traco
+   de vivacidade, e quem julga e a Edge Function.
+   ===================================================================== */
 
 const CFG = {
   supabaseUrl: 'https://snipevyvfxaotjhnabmx.supabase.co',
   supabaseAnon: 'sb_publishable_T0rV6HAXusL_3J3Yzh-P_Q_CieYFkjA',
-  modelos: './models',           // pesos do face-api hospedados junto ao PWA
+  modelos: './models',
   tz: 'America/Sao_Paulo',
+  chaveToken: 'ponto.terminal.token',
 };
 
 const sb = createClient(CFG.supabaseUrl, CFG.supabaseAnon);
 const $ = (id) => document.getElementById(id);
 
-/* O piscar saiu do sorteio. O olho fechado dura de 100 a 150 ms e o detector
-   no celular leva mais que isso por quadro, entao o quadro decisivo caia entre
-   duas leituras e a acao nunca fechava. O servidor agora sorteia uma acao so,
-   entre as quatro que o detector consegue acompanhar. */
 const ACAO = {
   virar_direita:  { titulo:'Vire o rosto para a direita',  dica:'Devagar, sem tirar o rosto do oval' },
   virar_esquerda: { titulo:'Vire o rosto para a esquerda', dica:'Devagar, sem tirar o rosto do oval' },
@@ -219,33 +245,22 @@ const ACAO = {
   sorrir:         { titulo:'Sorria',                       dica:'Sorriso aberto, mostrando os dentes' },
 };
 
-// Margens de aceite. Frouxas de proposito: o que prova vivacidade e o servidor
-// ter sorteado a sequencia na hora, nao a pessoa acertar um angulo exato.
-const LIMIAR = {
-  yaw:      15,    // graus de giro em relacao ao rosto de frente
-  area:     1.28,  // rosto 28% maior que no inicio
-  sorriso:  0.55,
-  amostras: 26,    // leituras minimas no traco antes de fechar a marcacao
-};
+const LIMIAR = { yaw:15, area:1.28, sorriso:0.55, amostras:26 };
 
 let stream = null, modelosProntos = false, abortar = false;
+let TOKEN = localStorage.getItem(CFG.chaveToken) || '';
+let ultimaProva = null, ultimoDesafio = null, ultimaGeo = null;
 
 /* ---------- relógio: sempre corrigido pelo servidor ---------- */
-/* A hora vem do banco, nao do cabecalho Date da resposta. Em requisicao
-   cross-origin o navegador so entrega os cabecalhos da lista segura do CORS
-   (Cache-Control, Content-Language, Content-Length, Content-Type, Expires,
-   Last-Modified e Pragma) e Date nao esta nela. O PostgREST tampouco manda
-   Access-Control-Expose-Headers, entao headers.get('date') voltava null,
-   new Date(null) virava o epoch e o relogio marcava 21:00 de 31/12/1969
-   subindo do zero, que e o horario de Brasilia do epoch. */
+/* A hora vem do banco. O cabecalho Date da resposta nao serve: em requisicao
+   cross-origin o navegador so entrega os cabecalhos da lista segura do CORS,
+   e Date nao esta nela. */
 let desvioMs = 0;
 async function sincronizarRelogio(){
   const t0 = Date.now();
   const { data, error } = await sb.schema('ponto').rpc('agora');
   if (error) throw error;
   const servidor = new Date(data).getTime();
-  // Descarta resposta implausivel em vez de propagar lixo para a tela: sem
-  // sincronia o relogio do aparelho ainda e uma hora sensata, o epoch nao.
   if (!Number.isFinite(servidor) || servidor < Date.UTC(2020,0,1)) return;
   desvioMs = servidor + (Date.now() - t0)/2 - Date.now();
 }
@@ -478,67 +493,59 @@ function pegarGeo(){
     );
   });
 }
+/* ---------- token do aparelho ---------- */
+function mostrarSetup(mostrar){
+  $('setup').hidden = !mostrar;
+  $('rodape').hidden = mostrar;
+  $('terminal-nome').textContent = mostrar ? 'não autorizado' : $('terminal-nome').textContent;
+}
 
-/* ---------- fluxo principal ---------- */
-$('bater').addEventListener('click', async () => {
-  const btn = $('bater'), aviso = $('aviso');
-  btn.disabled = true; aviso.className = 'aviso';
-
-  try{
-    const { data:{ session } } = await sb.auth.getSession();
-    if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./'); return; }
-    const auth = { Authorization:`Bearer ${session.access_token}`, 'Content-Type':'application/json' };
-
-    aviso.textContent = 'Abrindo a câmera…';
-    btn.textContent = 'Aguarde';
-    await abrirCamera();
-    aviso.textContent = 'Siga as instruções na tela.';
-
-    const rd = await fetch(`${CFG.supabaseUrl}/functions/v1/desafio-liveness`, { method:'POST', headers:auth });
-    if (!rd.ok) throw new Error('Não foi possível abrir o desafio. Tente de novo.');
-    const desafio = await rd.json();
-    $('pessoa').textContent = desafio.nome;
-
-    const prazo = new Date(desafio.expira_em) - Date.now() - 4000;
-    const [prova, geo] = await Promise.all([ cumprirDesafio(desafio.acoes, prazo), pegarGeo() ]);
-    if (abortar) throw new Error('Marcação cancelada. Toque em bater ponto quando quiser recomeçar.');
-    if (!prova) throw new Error('Não deu para confirmar o rosto a tempo. Procure um lugar mais claro, tire o boné ou o óculos escuro e comece de novo.');
-
-    let webauthn = null;
-    try{
-      webauthn = await startAuthentication({
-        optionsJSON:{ challenge: btoa(desafio.nonce).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_'),
-                      rpId: location.hostname, userVerification:'required', timeout:20000 }
-      });
-    }catch{ /* sem passkey: a marcação vale, mas entra em revisão */ }
-
-    const r = await fetch(`${CFG.supabaseUrl}/functions/v1/registrar-ponto`, {
-      method:'POST', headers:auth,
-      body: JSON.stringify({
-        desafio_id: desafio.desafio_id,
-        nonce: desafio.nonce,
-        descritor_facial: prova.descritor,
-        liveness: prova.liveness,
-        evidencia_b64: prova.evidencia,
-        geo, webauthn,
-      }),
-    });
-
-    const res = await r.json();
-    if (!r.ok) throw new Error(res.erro ?? 'A marcação não foi gravada.');
-
-    fecharCamera();
-    mostrarRecibo(res);
-    await carregarHoje();
-
-  }catch(e){
-    fecharCamera();
-    aviso.className = 'aviso erro';
-    aviso.textContent = e.message;
-  }finally{
-    btn.disabled = false; btn.textContent = 'Bater ponto';
-  }
+$('salvar-token').addEventListener('click', () => {
+  const t = $('token').value.trim();
+  if (!t) return;
+  TOKEN = t;
+  localStorage.setItem(CFG.chaveToken, t);
+  $('token').value = '';
+  mostrarSetup(false);
+  $('aviso').textContent = 'Celular autorizado. Pode bater ponto.';
 });
+
+const cabecalhos = () => ({ 'Content-Type':'application/json', 'x-terminal-token': TOKEN });
+
+/* ---------- envio ---------- */
+async function enviar(corpo){
+  const r = await fetch(`${CFG.supabaseUrl}/functions/v1/terminal-ponto`, {
+    method:'POST', headers: cabecalhos(), body: JSON.stringify(corpo),
+  });
+  const res = await r.json();
+  if (!r.ok) throw new Error(res.erro ?? 'A marcação não foi gravada.');
+  return res;
+}
+
+function pedirNome(res){
+  $('declarar-recado').textContent = res.recado;
+  $('nomes').innerHTML = '';
+  for (const p of res.equipe){
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = p.nome;
+    b.onclick = async () => {
+      $('declarar').hidden = true;
+      $('aviso').textContent = 'Registrando…';
+      try {
+        // O nonce ja queimou na primeira tentativa, entao esta marcacao entra
+        // como pendente de qualquer forma. E o preco de nunca barrar o ponto.
+        mostrarRecibo(await enviar({ ...ultimaProva, ...ultimoDesafio,
+          geo: ultimaGeo, empregado_declarado: p.id }));
+      } catch (e) {
+        $('aviso').className = 'aviso erro';
+        $('aviso').textContent = e.message;
+      }
+    };
+    $('nomes').append(b);
+  }
+  $('declarar').hidden = false;
+}
 
 /* ---------- recibo ---------- */
 function mostrarRecibo(r){
@@ -553,128 +560,108 @@ function mostrarRecibo(r){
 
   const selo = $('selo');
   selo.textContent = r.em_revisao ? 'EM REVISÃO' : 'REGISTRADO';
-  selo.style.borderColor = selo.style.color =
-    r.em_revisao ? 'var(--vermelho)' : 'var(--azul)';
+  selo.style.borderColor = selo.style.color = r.em_revisao ? 'var(--vermelho)' : 'var(--azul)';
 
   $('rec-revisao').innerHTML = r.em_revisao
     ? `<p class="revisao">A marcação está gravada e vale para a sua jornada.
-       A coordenação vai conferir porque ${r.sinais_ok < 2 ? 'não confirmamos vários sinais' : 'um sinal não foi confirmado'}
-       — normalmente é sinal de GPS fraco ou 4G no lugar do Wi-Fi da escola.</p>`
+       ${r.declarado
+         ? 'Como o rosto não foi reconhecido, a coordenação confere depois.'
+         : 'A coordenação vai conferir por causa de um sinal que não fechou.'}</p>`
     : '';
 
-  $('rec-pdf').onclick = async () => {
-    const { data:{ session } } = await sb.auth.getSession();
-    const resp = await fetch(r.comprovante_url, { headers:{ Authorization:`Bearer ${session.access_token}` }});
-    const url = URL.createObjectURL(await resp.blob());
-    Object.assign(document.createElement('a'), { href:url, download:`comprovante-${r.nsr}.pdf` }).click();
-    URL.revokeObjectURL(url);
-  };
-
+  $('rec-salvar').onclick = () => salvarComprovante(r, f);
   $('carimbo').classList.add('aberto');
-  $('rec-fechar').focus();
-}
-$('rec-fechar').onclick = () => $('carimbo').classList.remove('aberto');
-
-/* ---------- registro do aparelho (passkey) ----------
-   A chave nasce dentro do Secure Enclave deste aparelho e nunca sai dele.
-   Por isso ninguém pode registrar o celular de outra pessoa: é o que
-   fecha a brecha da senha emprestada. */
-async function conferirAparelho(){
-  const { data } = await sb.schema('ponto').from('dispositivos')
-    .select('id').eq('ativo', true).limit(1);
-  const temAparelho = (data ?? []).length > 0;
-  $('registrar-aparelho').hidden = temAparelho;
-  $('bater').hidden = !temAparelho;
-  if (!temAparelho){
-    $('aviso').textContent =
-      'Antes da primeira marcação, registre este celular. Leva uns 10 segundos.';
-  }
-  return temAparelho;
+  $('aviso').className = 'aviso';
+  $('aviso').textContent = 'O horário registrado é o do servidor, não o do aparelho.';
 }
 
-$('registrar-aparelho').addEventListener('click', async () => {
-  const btn = $('registrar-aparelho'), aviso = $('aviso');
-  btn.disabled = true; btn.textContent = 'Aguarde…';
-  aviso.className = 'aviso';
+/* Janela propria para o comprovante: no iOS a impressao vira "Salvar em
+   Arquivos", que e como a pessoa leva o PDF exigido por marcacao. */
+function salvarComprovante(r, f){
+  const w = window.open('', '_blank', 'width=520,height=760');
+  if (!w) return;
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">
+    <title>Comprovante NSR ${String(r.nsr).padStart(9,'0')}</title><style>
+    body{font:14px/1.7 system-ui,sans-serif; max-width:420px; margin:34px auto; padding:0 20px; color:#1A1A1A}
+    h1{font-size:16px; letter-spacing:.08em; text-transform:uppercase}
+    dt{color:#5A5A5A; font-size:12px; margin-top:12px} dd{margin:0; word-break:break-all}
+    .hora{font-size:34px; font-weight:700; margin:14px 0 2px}</style></head><body>
+    <h1>Comprovante de registro de ponto</h1>
+    <p class="hora">${f({hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}</p>
+    <p>${f({weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</p>
+    <dl><dt>NSR</dt><dd>${String(r.nsr).padStart(9,'0')}</dd>
+    <dt>Trabalhador</dt><dd>${r.nome}</dd>
+    <dt>CPF</dt><dd>${r.cpf ?? ''}</dd>
+    <dt>Código hash (SHA-256)</dt><dd>${r.hash}</dd>
+    <dt>Empregador</dt><dd>CNA Taquara</dd></dl></body></html>`);
+  w.document.close(); w.focus(); w.print();
+}
 
-  try{
-    const { data:{ session } } = await sb.auth.getSession();
-    if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./'); return; }
-    const auth = { Authorization:`Bearer ${session.access_token}`, 'Content-Type':'application/json' };
+$('rec-fechar').addEventListener('click', () => $('carimbo').classList.remove('aberto'));
 
-    const r1 = await fetch(`${CFG.supabaseUrl}/functions/v1/webauthn-registro`, {
-      method:'POST', headers:auth, body: JSON.stringify({ etapa:'opcoes' }) });
-    const p1 = await r1.json();
-    if (!r1.ok) throw new Error(p1.erro);
+/* ---------- fluxo principal ---------- */
+$('bater').addEventListener('click', async () => {
+  const btn = $('bater'), aviso = $('aviso');
+  if (!TOKEN) return mostrarSetup(true);
+  btn.disabled = true; aviso.className = 'aviso';
+  $('declarar').hidden = true;
 
-    const resposta = await startRegistration({ optionsJSON: p1.opcoes });
+  try {
+    aviso.textContent = 'Abrindo a câmera…';
+    btn.textContent = 'Aguarde';
+    await abrirCamera();
+    aviso.textContent = 'Siga as instruções na tela.';
 
-    const r2 = await fetch(`${CFG.supabaseUrl}/functions/v1/webauthn-registro`, {
-      method:'POST', headers:auth,
-      body: JSON.stringify({ etapa:'verificar', resposta, apelido: apelidoDoAparelho() }) });
-    const p2 = await r2.json();
-    if (!r2.ok) throw new Error(p2.erro);
+    const rd = await fetch(`${CFG.supabaseUrl}/functions/v1/terminal-desafio`, {
+      method:'POST', headers: cabecalhos(),
+    });
+    const desafio = await rd.json();
+    if (!rd.ok) throw new Error(desafio.erro ?? 'Não foi possível abrir o desafio.');
+    $('terminal-nome').textContent = desafio.terminal;
 
-    aviso.textContent = 'Celular registrado. Agora você já pode bater o ponto.';
-    await conferirAparelho();
-  }catch(e){
+    const prazo = new Date(desafio.expira_em).getTime() - Date.now();
+    const prova = await cumprirDesafio(desafio.acoes, Math.max(8000, prazo));
+    if (!prova){
+      fecharCamera();
+      aviso.className = 'aviso erro';
+      aviso.textContent = abortar ? 'Cancelado.' : 'Não consegui confirmar. Tente de novo.';
+      return;
+    }
+
+    const geo = await pegarGeo();
+    ultimaGeo = geo;
+    ultimoDesafio = { desafio_id: desafio.desafio_id, nonce: desafio.nonce };
+    ultimaProva = {
+      descritor_facial: prova.descritor,
+      liveness: prova.liveness,
+      evidencia_b64: prova.evidencia,
+    };
+
+    const res = await enviar({ ...ultimoDesafio, ...ultimaProva, geo });
+    fecharCamera();
+    if (res.nao_reconhecido) return pedirNome(res);
+    mostrarRecibo(res);
+
+  } catch (e) {
+    fecharCamera();
     aviso.className = 'aviso erro';
-    aviso.textContent = /NotAllowed|abort/i.test(e.message ?? '')
-      ? 'Registro cancelado. Toque de novo e confirme com a digital ou o PIN do aparelho.'
-      : e.message;
-  }finally{
-    btn.disabled = false; btn.textContent = 'Registrar este celular';
+    aviso.textContent = e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Bater ponto';
   }
 });
-
-function apelidoDoAparelho(){
-  const ua = navigator.userAgent;
-  if (/iPhone/.test(ua)) return 'iPhone';
-  if (/iPad/.test(ua))   return 'iPad';
-  if (/Android/.test(ua)) return 'Android';
-  return 'Aparelho';
-}
-
-$('sair').addEventListener('click', async (e) => {
-  e.preventDefault();
-  await sb.auth.signOut();
-  location.replace('./entrar.html');
-});
-
-/* ---------- marcações do dia ---------- */
-async function carregarHoje(){
-  const inicio = new Date(); inicio.setHours(0,0,0,0);
-  const { data } = await sb.schema('ponto').from('v_espelho')
-    .select('nsr, dh_marcacao, sinais_ok, revisao')
-    .gte('dh_marcacao', inicio.toISOString())
-    .order('dh_marcacao');
-
-  const lista = $('lista');
-  if (!data?.length){
-    lista.innerHTML = '<p class="vazio">Nenhuma marcação registrada hoje.</p>';
-    return;
-  }
-  lista.innerHTML = data.map(m => {
-    const h = new Intl.DateTimeFormat('pt-BR',{timeZone:CFG.tz,hour:'2-digit',minute:'2-digit',hour12:false})
-      .format(new Date(m.dh_marcacao));
-    const rev = m.revisao === 'pendente';
-    return `<div class="batida">
-      <span>${h}</span>
-      <span class="nsr">NSR ${String(m.nsr).padStart(9,'0')}</span>
-      <span class="sinal ${rev?'rev':'ok'}">${rev?'em revisão':'confirmada'}</span>
-    </div>`;
-  }).join('');
-}
 
 /* ---------- boot ---------- */
 (async () => {
   await sincronizarRelogio().catch(()=>{});
-  const { data:{ session } } = await sb.auth.getSession();
-  if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./'); return; }
-  const { data: eu } = await sb.schema('ponto').from('empregados').select('nome').maybeSingle();
-  if (eu) $('pessoa').textContent = eu.nome;
-  await carregarHoje();
-  await conferirAparelho();
+  // Link com o token na URL autoriza o aparelho de uma vez, sem digitacao.
+  const daUrl = new URLSearchParams(location.search).get('terminal');
+  if (daUrl){
+    TOKEN = daUrl;
+    localStorage.setItem(CFG.chaveToken, daUrl);
+    history.replaceState(null, '', location.pathname);
+  }
+  mostrarSetup(!TOKEN);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 </script>
