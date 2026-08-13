@@ -56,6 +56,24 @@ dialog p.erro{color:var(--vermelho-escuro); font-size:13.5px; margin-top:12px; m
   font-size:19px; line-height:1; padding:0 2px; margin-left:auto}
 @keyframes sobe{from{opacity:0; transform:translateY(11px)}to{opacity:1; transform:none}}
 
+/* biometria dentro do cadastro da pessoa */
+#dlg-bio{max-width:560px}
+.bio-passo[hidden]{display:none}
+.bio-termo{max-height:190px; overflow:auto; border:1px solid var(--linha); border-radius:8px;
+  padding:14px 16px; font-size:13.5px; line-height:1.6; background:var(--superficie)}
+.bio-aceite{display:flex; gap:10px; align-items:flex-start; margin-top:14px; font-size:13.5px; line-height:1.5}
+.bio-aceite input{width:18px; height:18px; margin-top:2px; flex:none}
+.bio-acoes{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap}
+.bio-camera{position:relative; border-radius:10px; overflow:hidden; background:var(--tinta); aspect-ratio:4/3}
+.bio-camera[hidden]{display:none}
+.bio-camera video{width:100%; height:100%; object-fit:cover; transform:scaleX(-1)}
+.bio-guia{position:absolute; left:0; right:0; bottom:0; padding:9px 12px; font-size:13px;
+  color:var(--branco); background:rgba(26,26,26,.62); text-align:center}
+.bio-amostras{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px}
+.bio-amostra{border:1px solid var(--linha); border-radius:8px; padding:9px 6px; text-align:center;
+  font-size:12.5px; color:var(--cinza)}
+.bio-amostra.ok{border-color:var(--azul); color:var(--azul); font-weight:600}
+
 .grade2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
 @media (max-width:760px){
   main{padding:14px}
@@ -111,7 +129,7 @@ dialog p.erro{color:var(--vermelho-escuro); font-size:13.5px; margin-top:12px; m
     <caption id="cap-equipe">Equipe</caption>
     <thead><tr>
       <th>Nome</th><th>Turno</th><th>E-mail</th><th>Acesso</th>
-      <th>Admissão</th><th class="n">Banco</th><th>Situação</th><th></th>
+      <th>Admissão</th><th class="n">Banco</th><th>Biometria</th><th>Situação</th><th></th>
     </tr></thead>
     <tbody id="t-equipe"></tbody>
   </table>
@@ -282,6 +300,54 @@ dialog p.erro{color:var(--vermelho-escuro); font-size:13.5px; margin-top:12px; m
   </div>
 </dialog>
 
+<dialog id="dlg-bio">
+  <h2>Biometria facial<span id="bio-quem" class="mudo" style="font-weight:400"></span></h2>
+  <div class="corpo">
+
+    <div class="bio-passo" id="bio-p-termo">
+      <div class="bio-termo" id="bio-termo">Carregando…</div>
+      <div class="bio-aceite">
+        <input type="checkbox" id="bio-aceito">
+        <label for="bio-aceito">A pessoa leu o termo e <strong>autoriza</strong> o uso da biometria
+        facial para confirmar a identidade no registro de ponto. Está ciente de que pode revogar
+        a autorização a qualquer momento e de que a recusa não impede o registro de ponto.</label>
+      </div>
+      <label class="campo" style="margin-top:14px">
+        <span>A pessoa confirma o nome completo</span>
+        <input type="text" id="bio-nome-aceite" placeholder="nome como no documento" autocomplete="off">
+      </label>
+      <div class="bio-acoes">
+        <button class="leve" id="bio-imprimir">Imprimir para assinatura</button>
+        <button class="acao" id="bio-consentir" disabled>Registrar consentimento</button>
+      </div>
+      <p class="nota">O aceite na tela vale, mas o papel assinado é o que se sustenta melhor numa
+      fiscalização. Imprima, colha a assinatura e guarde junto com a ficha da pessoa.</p>
+    </div>
+
+    <div class="bio-passo" id="bio-p-captura" hidden>
+      <div class="bio-camera" id="bio-camera" hidden>
+        <video id="bio-video" playsinline muted autoplay></video>
+        <div class="bio-guia" id="bio-guia">Enquadre o rosto</div>
+      </div>
+      <div class="bio-amostras" id="bio-amostras"></div>
+      <div class="bio-acoes">
+        <button class="acao" id="bio-ligar">Ligar a câmera</button>
+        <button class="leve" id="bio-capturar" disabled>Capturar amostra</button>
+      </div>
+      <p class="nota">São três amostras em posições diferentes porque o rosto muda: óculos, barba,
+      luz da recepção às 8h e às 21h. Uma amostra só falha no dia em que a pessoa está de boné.
+      <br><br>A foto não é enviada. O que sai do navegador é uma sequência de 128 números que
+      descreve o rosto e não permite reconstruí-lo.</p>
+    </div>
+
+    <p class="erro" id="dlg-bio-erro"></p>
+  </div>
+  <div class="rodape">
+    <button class="leve" id="bio-depois">Fazer depois</button>
+    <button class="acao" id="bio-salvar" disabled>Salvar biometria</button>
+  </div>
+</dialog>
+
 <dialog id="dlg-ajuste">
   <h2 id="dlg-ajuste-titulo">Ajustar dia</h2>
   <div class="corpo">
@@ -391,7 +457,18 @@ const sb = createClient(CFG.url, CFG.anon);
 const P  = sb.schema('ponto');
 const $  = (id) => document.getElementById(id);
 
-let EU = null, EQUIPE = [], JORNADAS = [], TURNOS = {}, editando = null, ajustando = null;
+let EU = null, EQUIPE = [], JORNADAS = [], TURNOS = {}, SITUACAO = {}, editando = null, ajustando = null;
+
+/* Biometria vive aqui dentro: o cadastro da pessoa e a captura do rosto acontecem
+   na mesma sessao presencial, e separar isso em outra tela so criava pendencia
+   esquecida. A tela cadastro.html continua valendo para refazer captura avulsa. */
+const POSES = [
+  { rotulo:'De frente',        dica:'Olhe direto para a câmera' },
+  { rotulo:'Levemente à dir.', dica:'Vire o rosto um pouco para a direita' },
+  { rotulo:'Levemente à esq.', dica:'Vire o rosto um pouco para a esquerda' },
+];
+let TERMO = null, faceapi = null, modelosProntos = false;
+const BIO = { emp:null, nome:'', descritores:[], stream:null };
 
 /* ===================== base ===================== */
 const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -408,6 +485,12 @@ function saldoCel(min, rotulo = 'Saldo'){
   if (min === null || min === undefined) return `<td class="n mudo"${r}>—</td>`;
   const c = min > 0 ? 'pos' : min < 0 ? 'neg' : '';
   return `<td class="n ${c}"${r}>${min > 0 ? '+' : ''}${hm(min)}</td>`;
+}
+// Data no fuso do REP. Com slice(0,10) do ISO a data saia em UTC ao lado de
+// uma hora em Brasilia: marcacao de 12/08 as 21:10 aparecia como 13/08 21:10.
+function diaBR(iso){
+  return new Intl.DateTimeFormat('en-CA',{timeZone:CFG.tz,year:'numeric',month:'2-digit',day:'2-digit'})
+    .format(new Date(iso));
 }
 function hora(iso){
   if (!iso) return '<span class="mudo">—</span>';
@@ -552,6 +635,14 @@ document.querySelectorAll('nav.abas button[data-aba]').forEach(b => b.onclick = 
 $('sair').onclick = async () => { await sb.auth.signOut(); location.replace('./entrar.html'); };
 
 /* ===================== EQUIPE ===================== */
+function bioCel(e){
+  if (!e.ativo) return '<span class="mudo">—</span>';
+  const s = SITUACAO[e.id];
+  if (!s || !s.consentiu) return '<span class="tag alerta">sem termo</span>';
+  if (s.amostras_faciais >= 3) return `<span class="tag ok">${s.amostras_faciais} amostras</span>`;
+  return `<span class="tag alerta">${s.amostras_faciais} de 3</span>`;
+}
+
 async function carregarEquipe(){
   const { data, error } = await P.from('empregados')
     .select('id,nome,cpf,cargo,email,auth_user_id,admissao,demissao,ativo,escala_sabado')
@@ -561,6 +652,11 @@ async function carregarEquipe(){
 
   const { data: vinc } = await P.from('empregado_jornada').select('empregado_id, jornadas(nome)');
   TURNOS = Object.fromEntries((vinc ?? []).map(v => [v.empregado_id, v.jornadas?.nome]));
+
+  // situacao_cadastro so devolve gente ativa, entao quem esta desligado cai no
+  // fallback e a celula mostra traço em vez de "falta".
+  const { data: sit } = await P.rpc('situacao_cadastro');
+  SITUACAO = Object.fromEntries((sit ?? []).map(s => [s.empregado_id, s]));
 
   const saldos = Object.fromEntries(await Promise.all(EQUIPE.map(async e => {
     const { data: s } = await P.rpc('saldo_banco', { p_emp: e.id });
@@ -589,16 +685,18 @@ async function carregarEquipe(){
                   : '<span class="tag alerta">sem e-mail</span>'}</td>
       <td data-rotulo="Admissão">${e.admissao.split('-').reverse().join('/')}</td>
       ${saldoCel(saldos[e.id], 'Banco')}
+      <td data-rotulo="Biometria">${bioCel(e)}</td>
       <td data-rotulo="Situação">${e.ativo
         ? '<span class="tag ok">ativo</span>'
         : `<span class="tag neutra">desligado ${e.demissao ? dia(e.demissao) : ''}</span>`}</td>
       <td data-rotulo=""><div class="acoes-linha">
         <button class="leve" data-editar="${e.id}">Editar</button>
+        ${e.ativo ? `<button class="leve" data-bio="${e.id}">Biometria</button>` : ''}
         ${e.ativo ? `<button class="btn danger" data-desligar="${e.id}">Desligar</button>`
                   : `<button class="leve" data-reativar="${e.id}">Reativar</button>`}
       </div></td>
     </tr>`).join('')
-    : '<tr><td colspan="8" class="vazio">Nenhuma pessoa encontrada com esses filtros.</td></tr>';
+    : '<tr><td colspan="9" class="vazio">Nenhuma pessoa encontrada com esses filtros.</td></tr>';
 
   const sel = $('e-pessoa'), atual = sel.value;
   sel.innerHTML = EQUIPE.filter(e => e.ativo)
@@ -610,8 +708,12 @@ $('f-situacao').onchange = carregarEquipe;
 
 $('t-equipe').onclick = async (ev) => {
   const b = ev.target.closest('button'); if (!b) return;
-  const { editar, desligar, reativar } = b.dataset;
+  const { editar, desligar, reativar, bio } = b.dataset;
   if (editar) return abrirPessoa(EQUIPE.find(x => x.id === editar));
+  if (bio){
+    const p = EQUIPE.find(x => x.id === bio);
+    return abrirBio(p.id, p.nome);
+  }
 
   if (desligar){
     const p = EQUIPE.find(x => x.id === desligar);
@@ -690,6 +792,7 @@ $('dlg-pessoa-salvar').onclick = async () => {
   const btn = $('dlg-pessoa-salvar');
   btn.disabled = true; btn.textContent = 'Salvando…';
   err.textContent = '';
+  let novoId = null;
 
   const dados = {
     nome: nome.toUpperCase(), cpf,
@@ -727,13 +830,205 @@ $('dlg-pessoa-salvar').onclick = async () => {
         empregado_id: novo.id, jornada_id: $('f-jornada').value,
         vigencia:`[${dados.admissao},)` }));
       recado(`${dados.nome} cadastrado. Crie a conta no Authentication com o mesmo e-mail.`, 'ok');
+      novoId = novo.id;
     }
     $('dlg-pessoa').close();
-    carregarEquipe();
+    await carregarEquipe();
+    // A pessoa esta na frente do balcao agora. Emendar a captura aqui e o que
+    // evita o cadastro pela metade que so aparece no dia da primeira marcacao.
+    if (novoId) abrirBio(novoId, dados.nome);
   } finally {
     btn.disabled = false; btn.textContent = 'Salvar';
   }
 };
+
+/* ===================== BIOMETRIA FACIAL ===================== */
+/* Presencial por um motivo: e o unico momento em que alguem confere que o
+   rosto capturado pertence mesmo aquela pessoa. Feito a distancia, a
+   biometria so garante que e sempre a mesma cara, nao de quem ela e. */
+
+function bioErro(txt){ $('dlg-bio-erro').textContent = txt ?? ''; }
+
+function bioPintarAmostras(){
+  $('bio-amostras').innerHTML = POSES.map((p, i) =>
+    `<div class="bio-amostra ${BIO.descritores[i] ? 'ok' : ''}">${BIO.descritores[i] ? '\u2713 ' : ''}${p.rotulo}</div>`
+  ).join('');
+  $('bio-guia').textContent = BIO.descritores.length < POSES.length
+    ? POSES[BIO.descritores.length].dica : 'Amostras completas';
+  $('bio-salvar').disabled = BIO.descritores.length < POSES.length;
+}
+
+function bioFecharCamera(){
+  BIO.stream?.getTracks().forEach(t => t.stop());
+  BIO.stream = null;
+  $('bio-camera').hidden = true;
+  $('bio-ligar').disabled = false;
+  $('bio-ligar').textContent = 'Ligar a câmera';
+  $('bio-capturar').disabled = true;
+}
+
+function bioMostrarCaptura(){
+  $('bio-p-termo').hidden = true;
+  $('bio-p-captura').hidden = false;
+  bioPintarAmostras();
+}
+
+async function abrirBio(emp, nome){
+  BIO.emp = emp; BIO.nome = nome; BIO.descritores = [];
+  bioErro('');
+  $('bio-quem').textContent = nome ? ' · ' + nome : '';
+  $('bio-aceito').checked = false;
+  $('bio-nome-aceite').value = '';
+  $('bio-consentir').disabled = true;
+  $('bio-salvar').disabled = true;
+  $('bio-p-termo').hidden = false;
+  $('bio-p-captura').hidden = true;
+  bioFecharCamera();
+  $('dlg-bio').showModal();
+
+  if (!TERMO){
+    const { data: t } = await P.from('termos').select('*').eq('vigente', true).maybeSingle();
+    TERMO = t;
+  }
+  $('bio-termo').innerHTML = TERMO
+    ? `<h3 style="font-size:15px;margin-bottom:8px">${esc(TERMO.titulo)}</h3>${esc(TERMO.texto)}`
+      + `<p style="margin-top:14px;color:var(--cinza);font-size:11px">versão ${esc(TERMO.versao)}</p>`
+    : 'Nenhum termo vigente cadastrado. Cadastre um termo antes de coletar biometria.';
+
+  // Consentimento vivo pula o passo do termo: refazer captura nao exige
+  // colher autorizacao de novo.
+  const { data: c } = await P.from('consentimentos')
+    .select('aceito_em, versao').eq('empregado_id', emp)
+    .eq('aceito', true).is('revogado_em', null)
+    .order('aceito_em', { ascending:false }).limit(1).maybeSingle();
+  if (c) bioMostrarCaptura();
+}
+
+$('bio-imprimir').onclick = () => {
+  if (!TERMO) return bioErro('Nenhum termo vigente cadastrado.');
+  // Janela separada de proposito: window.print() disparado de dentro de um
+  // <dialog> imprime a caixa flutuante, nao o documento.
+  const w = window.open('', '_blank', 'width=820,height=900');
+  if (!w) return bioErro('O navegador bloqueou a janela de impressão. Libere o popup e tente de novo.');
+  w.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8">`
+    + `<title>${esc(TERMO.titulo)}</title><style>`
+    + `body{font:14px/1.65 system-ui,sans-serif; max-width:640px; margin:40px auto; padding:0 20px; color:#1A1A1A}`
+    + `h1{font-size:19px} .assina{margin-top:70px; border-top:1px solid #1A1A1A; padding-top:7px; font-size:13px}`
+    + `.mudo{color:#5A5A5A; font-size:12px}</style></head><body>`
+    + `<h1>${esc(TERMO.titulo)}</h1><div>${esc(TERMO.texto)}</div>`
+    + `<p class="mudo">versão ${esc(TERMO.versao)}</p>`
+    + `<p class="assina">${esc(BIO.nome)}<br><span class="mudo">assinatura e data</span></p>`
+    + `</body></html>`);
+  w.document.close();
+  w.focus();
+  w.print();
+};
+
+function bioChecarAceite(){
+  $('bio-consentir').disabled = !(
+    BIO.emp && $('bio-aceito').checked && $('bio-nome-aceite').value.trim().length >= 5);
+}
+$('bio-aceito').onchange = bioChecarAceite;
+$('bio-nome-aceite').oninput = bioChecarAceite;
+
+$('bio-consentir').onclick = async () => {
+  if (!BIO.emp) return bioErro('Nenhuma pessoa selecionada.');
+  if (!TERMO) return bioErro('Nenhum termo vigente cadastrado.');
+  const btn = $('bio-consentir');
+  btn.disabled = true;
+  const ok = await escrever(P.from('consentimentos').insert({
+    empregado_id: BIO.emp,
+    versao: TERMO.versao,
+    aceito: true,
+    aceito_por_nome: $('bio-nome-aceite').value.trim().toUpperCase(),
+    testemunha_id: EU?.id ?? null,
+    user_agent: navigator.userAgent,
+  }));
+  if (!ok){ btn.disabled = false; return; }
+  recado('Consentimento registrado.', 'ok');
+  bioMostrarCaptura();
+};
+
+$('bio-ligar').onclick = async () => {
+  const btn = $('bio-ligar');
+  btn.disabled = true; btn.textContent = 'Carregando modelos…';
+  bioErro('');
+  try {
+    // Import sob demanda: o face-api pesa alguns MB e quem so vai conferir o
+    // espelho nao precisa baixar nada disso.
+    if (!faceapi) faceapi = await import('https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js');
+    if (!modelosProntos){
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri('./models'),
+        faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+        faceapi.nets.faceRecognitionNet.loadFromUri('./models'),
+      ]);
+      modelosProntos = true;
+    }
+    BIO.stream = await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:'user', width:{ideal:640}, height:{ideal:480} }, audio:false });
+    $('bio-video').srcObject = BIO.stream;
+    $('bio-camera').hidden = false;
+    await $('bio-video').play();
+    btn.textContent = 'Câmera ligada';
+    $('bio-capturar').disabled = false;
+  } catch (e) {
+    bioErro('Não consegui abrir a câmera: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Ligar a câmera';
+  }
+};
+
+const bioDistancia = (a, b) => Math.hypot(...a.map((v, i) => v - b[i]));
+
+$('bio-capturar').onclick = async () => {
+  const btn = $('bio-capturar');
+  btn.disabled = true; btn.textContent = 'Capturando…';
+  bioErro('');
+
+  const det = await faceapi
+    .detectSingleFace($('bio-video'), new faceapi.TinyFaceDetectorOptions({ inputSize:320, scoreThreshold:.5 }))
+    .withFaceLandmarks().withFaceDescriptor();
+
+  if (!det){
+    bioErro('Não achei um rosto no quadro. Aproxime e melhore a luz.');
+  } else if (det.detection.box.area / (640*480) < 0.04){
+    bioErro('Rosto pequeno demais. Chegue mais perto da câmera.');
+  } else {
+    const novo = Array.from(det.descriptor);
+    // Amostras quase identicas nao ajudam: o objetivo e variar a pose.
+    if (BIO.descritores.some(d => bioDistancia(d, novo) < 0.22)){
+      bioErro('Muito parecida com a anterior. Mude a posição do rosto.');
+    } else {
+      BIO.descritores.push(novo);
+      bioPintarAmostras();
+    }
+  }
+  btn.disabled = false; btn.textContent = 'Capturar amostra';
+};
+
+$('bio-salvar').onclick = async () => {
+  if (!BIO.emp) return bioErro('Nenhuma pessoa selecionada.');
+  if (BIO.descritores.length < POSES.length) return bioErro('Faltam amostras.');
+  const btn = $('bio-salvar');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+
+  const ok = await escrever(P.from('biometria_facial').insert(BIO.descritores.map(d => ({
+    empregado_id: BIO.emp,
+    descritor: `[${d.join(',')}]`,
+    consentimento_em: new Date().toISOString(),
+    consentimento_texto_versao: TERMO?.versao ?? null,
+  }))));
+  btn.textContent = 'Salvar biometria';
+  if (!ok){ btn.disabled = false; return; }
+
+  recado(`Biometria de ${BIO.nome} cadastrada. Falta a pessoa registrar o celular dela na tela de bater ponto.`, 'ok');
+  $('dlg-bio').close();
+  carregarEquipe();
+};
+
+$('bio-depois').onclick = () => $('dlg-bio').close();
+// A camera precisa morrer em qualquer caminho de saida, inclusive no Esc.
+$('dlg-bio').addEventListener('close', () => { bioFecharCamera(); BIO.descritores = []; });
 
 /* ===================== ESPELHO ===================== */
 async function carregarEspelho(){
@@ -971,7 +1266,7 @@ async function carregarPendencias(){
   const { data: sin } = await P.from('v_pendencias').select('*').limit(80);
   $('t-sinalizadas').innerHTML = (sin ?? []).length ? sin.map(s => `<tr>
     <td class="destaque" data-rotulo="">${esc(s.nome)}</td>
-    <td data-rotulo="Quando">${dia(s.dh_marcacao.slice(0,10))} ${hora(s.dh_marcacao)}</td>
+    <td data-rotulo="Quando">${dia(diaBR(s.dh_marcacao))} ${hora(s.dh_marcacao)}</td>
     <td data-rotulo="Local">${s.dentro_cerca ? '<span class="tag ok">na escola</span>'
         : s.ip_autorizado ? '<span class="tag ok">rede da escola</span>'
         : '<span class="tag alerta">fora</span>'}</td>
