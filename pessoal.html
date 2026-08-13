@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<title>Ponto (acesso pessoal) · CNA Taquara</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./assets/cna.css">
+<link rel="manifest" href="./manifest.webmanifest">
+<style>
+
+/* 100dvh acompanha a barra de endereco do celular; 100vh nao, e o botao
+   de bater ponto ficava escondido atras dela. min-height deixa rolar
+   quando o teclado abre ou a lista cresce. */
+body{display:flex; justify-content:center; align-items:stretch;
+  min-height:100dvh; padding:env(safe-area-inset-top) 14px calc(env(safe-area-inset-bottom) + 14px)}
+.cartao{width:100%; max-width:440px; margin:14px 0; display:flex; flex-direction:column;
+  background:var(--branco); border:1px solid var(--linha); border-radius:12px;
+  box-shadow:var(--sombra)}
+.topo{padding:20px 22px 0; display:flex; justify-content:space-between; align-items:center; gap:12px}
+.pessoa{font-family:var(--display); font-size:12.5px; font-weight:500; color:var(--cinza); text-align:right}
+
+.relogio{padding:22px 22px 4px}
+.hora{font-family:var(--display); font-weight:700; font-size:clamp(54px,17vw,74px);
+  letter-spacing:-.05em; line-height:.9; color:var(--azul); font-variant-numeric:tabular-nums}
+.hora .seg{font-size:.4em; font-weight:500; color:var(--cinza); letter-spacing:-.01em}
+.data{font-size:13px; color:var(--cinza); margin-top:11px}
+@media (max-height:680px){
+  .hora{font-size:clamp(40px,13vw,54px)}
+  .relogio{padding:14px 22px 2px}
+  .topo{padding:14px 22px 0}
+}
+
+/* A camera ocupa a tela inteira durante o desafio. Num retangulo 4/3 dentro
+   do cartao o rosto ficava pequeno demais: a pessoa nao enxergava a propria
+   posicao no oval e o detector perdia o movimento da cabeca no meio do giro. */
+.janela{position:fixed; inset:0; z-index:40; overflow:hidden; background:#000;
+  display:grid; place-items:center}
+.janela video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+.janela.oculta{display:none}
+body.travado{overflow:hidden}
+
+.mira{position:absolute; inset:0; display:grid; place-items:center; pointer-events:none}
+.mira svg{height:min(62dvh,112vw); width:auto; opacity:.85;
+  filter:drop-shadow(0 0 7px rgba(0,0,0,.6));
+  transition:stroke .18s, opacity .18s, transform .18s}
+.mira svg path{vector-effect:non-scaling-stroke; stroke-width:3px}
+.janela.buscando .mira svg{opacity:.4}
+.janela.acertou .mira svg{stroke:#2FBF71; opacity:1; transform:scale(1.04)}
+
+.rodape-camera{position:absolute; left:0; right:0; bottom:0; display:grid; gap:15px;
+  justify-items:center; padding:34px 20px calc(env(safe-area-inset-bottom) + 20px);
+  background:linear-gradient(transparent,rgba(0,0,0,.9))}
+.instrucao{color:var(--branco); font-family:var(--display); font-size:23px; font-weight:600;
+  text-align:center; line-height:1.25; text-wrap:balance}
+.instrucao small{display:block; margin-top:8px; font-size:14px; font-weight:500; opacity:.8}
+.instrucao small:empty{display:none}
+button.desistir{background:rgba(255,255,255,.14); color:var(--branco); cursor:pointer;
+  border:1px solid rgba(255,255,255,.38); border-radius:999px; padding:11px 26px;
+  font-family:var(--display); font-size:14px; font-weight:600}
+button.desistir:focus-visible{outline:2px solid var(--branco); outline-offset:3px}
+.contador{position:absolute; top:calc(env(safe-area-inset-top) + 14px); right:16px;
+  font-family:var(--display); font-weight:600; font-size:15px; color:var(--branco);
+  background:var(--vermelho); padding:6px 13px; border-radius:999px; font-variant-numeric:tabular-nums}
+.passo{position:absolute; top:calc(env(safe-area-inset-top) + 14px); left:16px;
+  font-family:var(--display); font-weight:600; font-size:13px; color:var(--branco);
+  background:rgba(0,0,0,.55); padding:6px 13px; border-radius:999px; letter-spacing:.05em}
+
+.pauta{flex:1; margin:20px 22px 0; min-height:0; overflow:auto}
+.pauta h2{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--cinza); padding-bottom:9px; border-bottom:1px solid var(--linha)}
+.batida{display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center;
+  padding:11px 0; border-bottom:1px solid var(--linha); font-size:14px}
+.batida > span:first-child{font-family:var(--display); font-weight:600; font-variant-numeric:tabular-nums}
+.batida .nsr{color:var(--cinza); font-size:12px; font-variant-numeric:tabular-nums}
+.batida .sinal{font-family:var(--display); font-size:10.5px; font-weight:600;
+  padding:3px 9px; border-radius:999px}
+.sinal.ok{background:var(--azul-claro); color:var(--azul)}
+.sinal.rev{background:var(--rosa); color:var(--vermelho-escuro)}
+.vazio{padding:24px 0; color:var(--cinza); font-size:14px; line-height:1.5}
+
+.acao{padding:16px 22px 24px; position:sticky; bottom:0; background:var(--branco);
+  border-top:1px solid var(--linha); border-radius:0 0 12px 12px; z-index:2}
+.pauta{padding-bottom:8px}
+button.bater{width:100%; border:0; border-radius:8px; cursor:pointer;
+  background:var(--vermelho); color:var(--branco); font-family:var(--display);
+  font-size:17px; font-weight:600; padding:19px; transition:background .15s, transform .1s}
+button.bater:hover{background:var(--vermelho-escuro)}
+button.bater:active{transform:scale(.985)}
+button.bater:disabled{background:var(--linha); color:var(--cinza); cursor:default}
+button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
+#registrar-aparelho{background:var(--azul); margin-bottom:9px}
+#registrar-aparelho:hover{background:#142F66}
+.aviso{margin-top:12px; font-size:13px; line-height:1.45; color:var(--cinza);
+  text-align:center; border:0; background:none; padding:0}
+.aviso.erro{color:var(--vermelho-escuro)}
+.aviso a{color:var(--cinza)}
+
+/* comprovante: o carimbo de conclusão */
+.carimbo{position:fixed; inset:0; background:rgba(247,247,249,.97);
+  display:none; place-items:center; padding:20px; z-index:20}
+.carimbo.aberto{display:grid}
+.recibo{width:100%; max-width:350px; background:var(--branco); border:1px solid var(--linha);
+  border-radius:12px; padding:34px 28px 26px; position:relative; box-shadow:var(--sombra);
+  animation:prensa .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes prensa{
+  0%{transform:scale(1.5) rotate(-7deg); opacity:0}
+  55%{transform:scale(.97) rotate(1.2deg); opacity:1}
+  100%{transform:scale(1) rotate(0); opacity:1}}
+.recibo .selo{position:absolute; top:-20px; right:20px; width:78px; height:78px;
+  border:2.5px solid var(--vermelho); border-radius:50%; display:grid; place-items:center;
+  text-align:center; transform:rotate(-13deg); color:var(--vermelho);
+  font-family:var(--display); font-size:9px; font-weight:700; letter-spacing:.05em;
+  line-height:1.25; background:var(--branco); animation:bate .45s .18s cubic-bezier(.2,1.8,.4,1) both}
+@keyframes bate{0%{transform:rotate(-13deg) scale(2.2);opacity:0}100%{transform:rotate(-13deg) scale(1);opacity:1}}
+.recibo h3{font-family:var(--display); font-size:10px; font-weight:600; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--cinza)}
+.recibo .marca-hora{font-family:var(--display); font-size:42px; font-weight:700;
+  letter-spacing:-.04em; margin:10px 0 3px; color:var(--azul); font-variant-numeric:tabular-nums}
+.recibo dl{margin-top:20px; border-top:1px solid var(--linha); padding-top:15px; font-size:13px}
+.recibo dt{font-family:var(--display); color:var(--cinza); font-size:9.5px; font-weight:600;
+  letter-spacing:.12em; text-transform:uppercase; margin-top:13px}
+.recibo dd{margin-top:3px; word-break:break-all; line-height:1.45; font-variant-numeric:tabular-nums}
+.recibo .botoes{display:flex; gap:10px; margin-top:22px}
+.recibo .botoes button{flex:1}
+.recibo .revisao{margin-top:15px; padding:12px 14px; border-left:3px solid var(--vermelho);
+  background:var(--rosa); border-radius:0 6px 6px 0; font-size:13px; line-height:1.45; color:var(--tinta)}
+
+</style>
+</head>
+<body>
+
+<main class="cartao">
+  <header class="topo">
+    <div class="marca"><img class="colorida" src="./assets/logo-cna.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><img class="branca" src="./assets/logo-cna-branca.png" alt="CNA Idiomas" onerror="this.dataset.falhou=1"><span class="lockup"><b>CNA</b> <i>idiomas</i></span><span class="unidade">Taquara</span></div>
+    <span class="pessoa" id="pessoa">—</span>
+  </header>
+
+  <section class="relogio">
+    <div class="hora" id="hora">--:--<span class="seg">:--</span></div>
+    <div class="data" id="data">—</div>
+  </section>
+
+  <div class="janela oculta" id="janela">
+    <video id="video" playsinline muted autoplay></video>
+    <div class="mira">
+      <svg viewBox="46 16 108 148" fill="none" stroke="#FFFFFF">
+        <path d="M100 22c30 0 48 24 48 60 0 42-22 74-48 74s-48-32-48-74c0-36 18-60 48-60Z"/>
+      </svg>
+    </div>
+    <span class="passo" id="passo"></span>
+    <span class="contador" id="contador"></span>
+    <div class="rodape-camera">
+      <p class="instrucao" id="instrucao">Enquadre o rosto<small id="dica">Deixe o rosto inteiro dentro do oval</small></p>
+      <button type="button" class="desistir" id="desistir">Cancelar</button>
+    </div>
+  </div>
+
+  <section class="pauta">
+    <h2>Marcações de hoje</h2>
+    <div id="lista"><p class="vazio">Nenhuma marcação registrada hoje.</p></div>
+  </section>
+
+  <footer class="acao">
+    <button class="bater" id="registrar-aparelho" hidden>Registrar este celular</button>
+    <button class="bater" id="bater">Bater ponto</button>
+    <p class="aviso" id="aviso">O horário registrado é o do servidor, não o do aparelho.</p>
+    <p class="aviso" style="margin-top:10px;display:flex;gap:16px;justify-content:center">
+      <a href="https://adm.cnataquara.com.br/rep.html" style="color:var(--cinza);padding:6px 4px">Administração</a>
+      <a href="#" id="sair" style="color:var(--cinza);padding:6px 4px">Sair</a>
+    </p>
+  </footer>
+</main>
+
+<div class="carimbo" id="carimbo" role="dialog" aria-modal="true" aria-labelledby="rec-titulo">
+  <div class="recibo">
+    <div class="selo" id="selo">REGISTRADO</div>
+    <h3 id="rec-titulo">Comprovante de registro de ponto</h3>
+    <p class="marca-hora" id="rec-hora">--:--</p>
+    <p style="font-size:13px;color:var(--cinza)" id="rec-data"></p>
+    <div id="rec-revisao"></div>
+    <dl>
+      <dt>NSR</dt><dd id="rec-nsr"></dd>
+      <dt>Trabalhador</dt><dd id="rec-nome"></dd>
+      <dt>Código hash (SHA-256)</dt><dd id="rec-hash"></dd>
+    </dl>
+    <div class="botoes">
+      <button class="leve" id="rec-pdf">Baixar PDF</button>
+      <button class="acao" id="rec-fechar">Concluir</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as faceapi from 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { startAuthentication, startRegistration } from 'https://esm.sh/@simplewebauthn/browser@13';
+
+const CFG = {
+  supabaseUrl: 'https://snipevyvfxaotjhnabmx.supabase.co',
+  supabaseAnon: 'sb_publishable_T0rV6HAXusL_3J3Yzh-P_Q_CieYFkjA',
+  modelos: './models',           // pesos do face-api hospedados junto ao PWA
+  tz: 'America/Sao_Paulo',
+};
+
+const sb = createClient(CFG.supabaseUrl, CFG.supabaseAnon);
+const $ = (id) => document.getElementById(id);
+
+/* O piscar saiu do sorteio. O olho fechado dura de 100 a 150 ms e o detector
+   no celular leva mais que isso por quadro, entao o quadro decisivo caia entre
+   duas leituras e a acao nunca fechava. O servidor agora sorteia uma acao so,
+   entre as quatro que o detector consegue acompanhar. */
+const ACAO = {
+  virar_direita:  { titulo:'Vire o rosto para a direita',  dica:'Devagar, sem tirar o rosto do oval' },
+  virar_esquerda: { titulo:'Vire o rosto para a esquerda', dica:'Devagar, sem tirar o rosto do oval' },
+  aproximar:      { titulo:'Aproxime o rosto da câmera',   dica:'Chegue perto até preencher o oval' },
+  sorrir:         { titulo:'Sorria',                       dica:'Sorriso aberto, mostrando os dentes' },
+};
+
+// Margens de aceite. Frouxas de proposito: o que prova vivacidade e o servidor
+// ter sorteado a sequencia na hora, nao a pessoa acertar um angulo exato.
+const LIMIAR = {
+  yaw:      15,    // graus de giro em relacao ao rosto de frente
+  area:     1.28,  // rosto 28% maior que no inicio
+  sorriso:  0.55,
+  amostras: 26,    // leituras minimas no traco antes de fechar a marcacao
+};
+
+let stream = null, modelosProntos = false, abortar = false;
+
+/* ---------- relógio: sempre corrigido pelo servidor ---------- */
+/* A hora vem do banco, nao do cabecalho Date da resposta. Em requisicao
+   cross-origin o navegador so entrega os cabecalhos da lista segura do CORS
+   (Cache-Control, Content-Language, Content-Length, Content-Type, Expires,
+   Last-Modified e Pragma) e Date nao esta nela. O PostgREST tampouco manda
+   Access-Control-Expose-Headers, entao headers.get('date') voltava null,
+   new Date(null) virava o epoch e o relogio marcava 21:00 de 31/12/1969
+   subindo do zero, que e o horario de Brasilia do epoch. */
+let desvioMs = 0;
+async function sincronizarRelogio(){
+  const t0 = Date.now();
+  const { data, error } = await sb.schema('ponto').rpc('agora');
+  if (error) throw error;
+  const servidor = new Date(data).getTime();
+  // Descarta resposta implausivel em vez de propagar lixo para a tela: sem
+  // sincronia o relogio do aparelho ainda e uma hora sensata, o epoch nao.
+  if (!Number.isFinite(servidor) || servidor < Date.UTC(2020,0,1)) return;
+  desvioMs = servidor + (Date.now() - t0)/2 - Date.now();
+}
+function agora(){ return new Date(Date.now() + desvioMs); }
+
+function pintarRelogio(){
+  const d = agora();
+  const f = (o) => new Intl.DateTimeFormat('pt-BR',{timeZone:CFG.tz,...o}).format(d);
+  $('hora').innerHTML =
+    f({hour:'2-digit',minute:'2-digit',hour12:false}) +
+    `<span class="seg">:${f({second:'2-digit'}).padStart(2,'0')}</span>`;
+  $('data').textContent =
+    f({weekday:'long',day:'2-digit',month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
+}
+setInterval(pintarRelogio, 1000); pintarRelogio();
+setInterval(() => sincronizarRelogio().catch(()=>{}), 300000);
+
+/* ---------- geometria do rosto ---------- */
+/* O video aparece espelhado na tela, mas o quadro que o detector recebe nao e.
+   Sem inverter o sinal aqui, "vire para a direita" so era aceito quando a
+   pessoa virava para o lado errado — era este o motivo de o desafio nunca
+   completar. Positivo = direita de quem esta olhando para a tela.
+   A escala tambem dobrou: a anterior subestimava o giro pela metade, entao
+   o limite de 16 graus exigia virar o rosto quase de perfil. */
+function yawGraus(pontos){
+  const cantoE = pontos[36], cantoD = pontos[45], nariz = pontos[30];
+  const largura = (cantoD.x - cantoE.x) || 1;
+  const r = (nariz.x - cantoE.x) / largura;   // 0,5 com o rosto de frente
+  return -((r - 0.5) * 180);
+}
+function ear(p, i){
+  const d = (a,b)=>Math.hypot(p[a].x-p[b].x, p[a].y-p[b].y);
+  return i === 'esq'
+    ? (d(37,41)+d(38,40)) / (2*d(36,39))
+    : (d(43,47)+d(44,46)) / (2*d(42,45));
+}
+
+/* ---------- câmera ---------- */
+async function abrirCamera(){
+  if (!modelosProntos){
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(CFG.modelos),
+      faceapi.nets.faceLandmark68Net.loadFromUri(CFG.modelos),
+      faceapi.nets.faceRecognitionNet.loadFromUri(CFG.modelos),
+      faceapi.nets.faceExpressionNet.loadFromUri(CFG.modelos),
+    ]);
+    modelosProntos = true;
+  }
+  stream = await navigator.mediaDevices.getUserMedia({
+    video:{ facingMode:'user', width:{ideal:960}, height:{ideal:720} }, audio:false
+  });
+  abortar = false;
+  $('video').srcObject = stream;
+  $('janela').classList.remove('oculta');
+  $('janela').classList.add('buscando');
+  document.body.classList.add('travado');
+  instruir('Enquadre o rosto', 'Deixe o rosto inteiro dentro do oval');
+  $('passo').textContent = '';
+  $('contador').textContent = '';
+  await $('video').play();
+}
+function fecharCamera(){
+  stream?.getTracks().forEach(t=>t.stop());
+  stream = null;
+  $('janela').classList.add('oculta');
+  $('janela').classList.remove('buscando','acertou');
+  document.body.classList.remove('travado');
+}
+function instruir(titulo, dica){
+  $('instrucao').firstChild.nodeValue = titulo;
+  $('dica').textContent = dica ?? '';
+}
+$('desistir').addEventListener('click', () => { abortar = true; });
+
+/* ---------- liveness: cumprir as ações que o servidor sorteou ----------
+   Cada ação tem duas fases. Primeiro o rosto de frente, para medir o neutro
+   daquela pessoa naquele instante; só depois a instrução aparece. Medir o
+   neutro junto com a ação era o segundo motivo de o desafio travar: a leitura
+   de referência caía no meio do movimento e a diferença nunca crescia. */
+async function amostrar(ctx){
+  const det = ctx.expressao
+    ? await faceapi.detectSingleFace(ctx.video, ctx.opts).withFaceLandmarks().withFaceExpressions()
+    : await faceapi.detectSingleFace(ctx.video, ctx.opts).withFaceLandmarks();
+  if (!det) return null;
+
+  const p = det.landmarks.positions;
+  const m = {
+    yaw:   yawGraus(p),
+    ear:   (ear(p,'esq') + ear(p,'dir'))/2,
+    area:  det.detection.box.area / (ctx.video.videoWidth * ctx.video.videoHeight),
+    feliz: det.expressions?.happy ?? 0,
+  };
+  ctx.trace.push({ t:Date.now(), yaw:+m.yaw.toFixed(2), ear:+m.ear.toFixed(4), area:+m.area.toFixed(4) });
+  return m;
+}
+
+const mediana = (v) => v.slice().sort((a,b)=>a-b)[Math.floor(v.length/2)];
+
+async function medirNeutro(ctx, fim){
+  instruir('Olhe para a câmera', 'Rosto de frente, dentro do oval');
+  const buf = [];
+  const limite = Math.min(fim, Date.now() + 8000);
+
+  while (Date.now() < limite && !abortar){
+    const m = await amostrar(ctx);
+    if (!m){
+      ctx.janela.classList.add('buscando');
+      instruir('Enquadre o rosto', 'Traga o rosto para dentro do oval');
+      await espera(60);
+      continue;
+    }
+    ctx.janela.classList.remove('buscando');
+    buf.push(m);
+    if (buf.length > 6) buf.shift();
+    if (buf.length === 6){
+      const y = buf.map(b=>b.yaw);
+      if (Math.max(...y) - Math.min(...y) < 10) break;   // cabeça parada
+    }
+    await espera(30);
+  }
+  if (buf.length < 3) return null;
+  return {
+    yaw:  mediana(buf.map(b=>b.yaw)),
+    ear:  mediana(buf.map(b=>b.ear)),
+    area: mediana(buf.map(b=>b.area)),
+  };
+}
+
+async function aguardarAcao(acao, base, ctx, fim){
+  instruir(ACAO[acao].titulo, ACAO[acao].dica);
+  let seguidas = 0;
+
+  while (Date.now() < fim && !abortar){
+    ctx.contador.textContent = Math.max(0, Math.ceil((fim - Date.now())/1000)) + 's';
+    const m = await amostrar(ctx);
+    if (!m){ ctx.janela.classList.add('buscando'); seguidas = 0; await espera(50); continue; }
+    ctx.janela.classList.remove('buscando');
+
+    let ok = false;
+    switch (acao){
+      case 'virar_direita':  ok = m.yaw - base.yaw > LIMIAR.yaw; break;
+      case 'virar_esquerda': ok = base.yaw - m.yaw > LIMIAR.yaw; break;
+      case 'aproximar':      ok = m.area > base.area * LIMIAR.area; break;
+      case 'sorrir':         ok = m.feliz > LIMIAR.sorriso; break;
+    }
+
+    // duas leituras seguidas para não aceitar um tremor de detecção
+    seguidas = ok ? seguidas + 1 : 0;
+    if (seguidas >= 2) return true;
+    await espera(30);
+  }
+  return false;
+}
+
+async function cumprirDesafio(acoes, prazoMs){
+  const ctx = {
+    video:  $('video'),
+    janela: $('janela'),
+    contador: $('contador'),
+    opts:   new faceapi.TinyFaceDetectorOptions({ inputSize:288, scoreThreshold:.4 }),
+    expressao: acoes.includes('sorrir'),
+    trace:  [],
+  };
+  const fim = Date.now() + prazoMs;
+
+  for (let i = 0; i < acoes.length; i++){
+    $('passo').textContent = acoes.length > 1 ? `Passo ${i+1} de ${acoes.length}` : '';
+
+    const base = await medirNeutro(ctx, fim);
+    if (!base || abortar) return null;
+
+    const passou = await aguardarAcao(acoes[i], base, ctx, fim);
+    if (!passou || abortar) return null;
+
+    ctx.janela.classList.add('acertou');
+    instruir('Isso!', '');
+    await espera(450);
+    ctx.janela.classList.remove('acertou');
+  }
+
+  // último quadro: descritor + evidência. Vale a pena insistir algumas vezes:
+  // falhar aqui joga fora um desafio que a pessoa já cumpriu inteiro.
+  $('contador').textContent = '';
+  instruir('Registrando…', 'Fique parado mais um instante');
+
+  // Com uma acao so o traco pode sair curto demais para o servidor conferir
+  // que o movimento e de gente. Estas leituras a mais sao quadros reais,
+  // colhidos enquanto a pessoa ja esta parada para a foto.
+  const ateTraco = Date.now() + 4000;
+  while (ctx.trace.length < LIMIAR.amostras && Date.now() < ateTraco && !abortar){
+    if (!await amostrar(ctx)) await espera(60);
+  }
+
+  let final = null;
+  for (let i = 0; i < 10 && !final && !abortar; i++){
+    final = await faceapi.detectSingleFace(ctx.video, ctx.opts).withFaceLandmarks().withFaceDescriptor();
+    if (!final) await espera(90);
+  }
+  if (!final) return null;
+
+  const cv = document.createElement('canvas');
+  cv.width = 320; cv.height = 240;
+  cv.getContext('2d').drawImage(ctx.video, 0, 0, 320, 240);
+
+  return {
+    descritor: Array.from(final.descriptor),
+    evidencia: cv.toDataURL('image/jpeg', 0.7).split(',')[1],
+    liveness: {
+      acoes_cumpridas: acoes.slice(),
+      confianca: Math.min(1, ctx.trace.length / 24),
+      trace: ctx.trace.slice(-90),
+    },
+  };
+}
+const espera = (ms) => new Promise(r=>setTimeout(r, ms));
+
+/* ---------- localização (opcional, nunca bloqueia) ---------- */
+function pegarGeo(){
+  return new Promise((resolve)=>{
+    if (!navigator.geolocation) return resolve(null);
+    const t = setTimeout(()=>resolve(null), 6000);
+    navigator.geolocation.getCurrentPosition(
+      (pos)=>{ clearTimeout(t); resolve({
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        acuracia_m: pos.coords.accuracy,
+      });},
+      ()=>{ clearTimeout(t); resolve(null); },
+      { enableHighAccuracy:true, timeout:5500, maximumAge:0 }
+    );
+  });
+}
+
+/* ---------- fluxo principal ---------- */
+$('bater').addEventListener('click', async () => {
+  const btn = $('bater'), aviso = $('aviso');
+  btn.disabled = true; aviso.className = 'aviso';
+
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./pessoal.html'); return; }
+    const auth = { Authorization:`Bearer ${session.access_token}`, 'Content-Type':'application/json' };
+
+    aviso.textContent = 'Abrindo a câmera…';
+    btn.textContent = 'Aguarde';
+    await abrirCamera();
+    aviso.textContent = 'Siga as instruções na tela.';
+
+    const rd = await fetch(`${CFG.supabaseUrl}/functions/v1/desafio-liveness`, { method:'POST', headers:auth });
+    if (!rd.ok) throw new Error('Não foi possível abrir o desafio. Tente de novo.');
+    const desafio = await rd.json();
+    $('pessoa').textContent = desafio.nome;
+
+    const prazo = new Date(desafio.expira_em) - Date.now() - 4000;
+    const [prova, geo] = await Promise.all([ cumprirDesafio(desafio.acoes, prazo), pegarGeo() ]);
+    if (abortar) throw new Error('Marcação cancelada. Toque em bater ponto quando quiser recomeçar.');
+    if (!prova) throw new Error('Não deu para confirmar o rosto a tempo. Procure um lugar mais claro, tire o boné ou o óculos escuro e comece de novo.');
+
+    let webauthn = null;
+    try{
+      webauthn = await startAuthentication({
+        optionsJSON:{ challenge: btoa(desafio.nonce).replace(/=+$/,'').replace(/\+/g,'-').replace(/\//g,'_'),
+                      rpId: location.hostname, userVerification:'required', timeout:20000 }
+      });
+    }catch{ /* sem passkey: a marcação vale, mas entra em revisão */ }
+
+    const r = await fetch(`${CFG.supabaseUrl}/functions/v1/registrar-ponto`, {
+      method:'POST', headers:auth,
+      body: JSON.stringify({
+        desafio_id: desafio.desafio_id,
+        nonce: desafio.nonce,
+        descritor_facial: prova.descritor,
+        liveness: prova.liveness,
+        evidencia_b64: prova.evidencia,
+        geo, webauthn,
+      }),
+    });
+
+    const res = await r.json();
+    if (!r.ok) throw new Error(res.erro ?? 'A marcação não foi gravada.');
+
+    fecharCamera();
+    mostrarRecibo(res);
+    await carregarHoje();
+
+  }catch(e){
+    fecharCamera();
+    aviso.className = 'aviso erro';
+    aviso.textContent = e.message;
+  }finally{
+    btn.disabled = false; btn.textContent = 'Bater ponto';
+  }
+});
+
+/* ---------- recibo ---------- */
+function mostrarRecibo(r){
+  const d = new Date(r.marcado_em);
+  const f = (o)=>new Intl.DateTimeFormat('pt-BR',{timeZone:CFG.tz,...o}).format(d);
+
+  $('rec-hora').textContent = f({hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  $('rec-data').textContent = f({weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  $('rec-nsr').textContent  = String(r.nsr).padStart(9,'0');
+  $('rec-nome').textContent = r.nome;
+  $('rec-hash').textContent = r.hash;
+
+  const selo = $('selo');
+  selo.textContent = r.em_revisao ? 'EM REVISÃO' : 'REGISTRADO';
+  selo.style.borderColor = selo.style.color =
+    r.em_revisao ? 'var(--vermelho)' : 'var(--azul)';
+
+  $('rec-revisao').innerHTML = r.em_revisao
+    ? `<p class="revisao">A marcação está gravada e vale para a sua jornada.
+       A coordenação vai conferir porque ${r.sinais_ok < 2 ? 'não confirmamos vários sinais' : 'um sinal não foi confirmado'}
+       — normalmente é sinal de GPS fraco ou 4G no lugar do Wi-Fi da escola.</p>`
+    : '';
+
+  $('rec-pdf').onclick = async () => {
+    const { data:{ session } } = await sb.auth.getSession();
+    const resp = await fetch(r.comprovante_url, { headers:{ Authorization:`Bearer ${session.access_token}` }});
+    const url = URL.createObjectURL(await resp.blob());
+    Object.assign(document.createElement('a'), { href:url, download:`comprovante-${r.nsr}.pdf` }).click();
+    URL.revokeObjectURL(url);
+  };
+
+  $('carimbo').classList.add('aberto');
+  $('rec-fechar').focus();
+}
+$('rec-fechar').onclick = () => $('carimbo').classList.remove('aberto');
+
+/* ---------- registro do aparelho (passkey) ----------
+   A chave nasce dentro do Secure Enclave deste aparelho e nunca sai dele.
+   Por isso ninguém pode registrar o celular de outra pessoa: é o que
+   fecha a brecha da senha emprestada. */
+async function conferirAparelho(){
+  const { data } = await sb.schema('ponto').from('dispositivos')
+    .select('id').eq('ativo', true).limit(1);
+  const temAparelho = (data ?? []).length > 0;
+  $('registrar-aparelho').hidden = temAparelho;
+  $('bater').hidden = !temAparelho;
+  if (!temAparelho){
+    $('aviso').textContent =
+      'Antes da primeira marcação, registre este celular. Leva uns 10 segundos.';
+  }
+  return temAparelho;
+}
+
+$('registrar-aparelho').addEventListener('click', async () => {
+  const btn = $('registrar-aparelho'), aviso = $('aviso');
+  btn.disabled = true; btn.textContent = 'Aguarde…';
+  aviso.className = 'aviso';
+
+  try{
+    const { data:{ session } } = await sb.auth.getSession();
+    if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./pessoal.html'); return; }
+    const auth = { Authorization:`Bearer ${session.access_token}`, 'Content-Type':'application/json' };
+
+    const r1 = await fetch(`${CFG.supabaseUrl}/functions/v1/webauthn-registro`, {
+      method:'POST', headers:auth, body: JSON.stringify({ etapa:'opcoes' }) });
+    const p1 = await r1.json();
+    if (!r1.ok) throw new Error(p1.erro);
+
+    const resposta = await startRegistration({ optionsJSON: p1.opcoes });
+
+    const r2 = await fetch(`${CFG.supabaseUrl}/functions/v1/webauthn-registro`, {
+      method:'POST', headers:auth,
+      body: JSON.stringify({ etapa:'verificar', resposta, apelido: apelidoDoAparelho() }) });
+    const p2 = await r2.json();
+    if (!r2.ok) throw new Error(p2.erro);
+
+    aviso.textContent = 'Celular registrado. Agora você já pode bater o ponto.';
+    await conferirAparelho();
+  }catch(e){
+    aviso.className = 'aviso erro';
+    aviso.textContent = /NotAllowed|abort/i.test(e.message ?? '')
+      ? 'Registro cancelado. Toque de novo e confirme com a digital ou o PIN do aparelho.'
+      : e.message;
+  }finally{
+    btn.disabled = false; btn.textContent = 'Registrar este celular';
+  }
+});
+
+function apelidoDoAparelho(){
+  const ua = navigator.userAgent;
+  if (/iPhone/.test(ua)) return 'iPhone';
+  if (/iPad/.test(ua))   return 'iPad';
+  if (/Android/.test(ua)) return 'Android';
+  return 'Aparelho';
+}
+
+$('sair').addEventListener('click', async (e) => {
+  e.preventDefault();
+  await sb.auth.signOut();
+  location.replace('./entrar.html');
+});
+
+/* ---------- marcações do dia ---------- */
+async function carregarHoje(){
+  const inicio = new Date(); inicio.setHours(0,0,0,0);
+  const { data } = await sb.schema('ponto').from('v_espelho')
+    .select('nsr, dh_marcacao, sinais_ok, revisao')
+    .gte('dh_marcacao', inicio.toISOString())
+    .order('dh_marcacao');
+
+  const lista = $('lista');
+  if (!data?.length){
+    lista.innerHTML = '<p class="vazio">Nenhuma marcação registrada hoje.</p>';
+    return;
+  }
+  lista.innerHTML = data.map(m => {
+    const h = new Intl.DateTimeFormat('pt-BR',{timeZone:CFG.tz,hour:'2-digit',minute:'2-digit',hour12:false})
+      .format(new Date(m.dh_marcacao));
+    const rev = m.revisao === 'pendente';
+    return `<div class="batida">
+      <span>${h}</span>
+      <span class="nsr">NSR ${String(m.nsr).padStart(9,'0')}</span>
+      <span class="sinal ${rev?'rev':'ok'}">${rev?'em revisão':'confirmada'}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- boot ---------- */
+(async () => {
+  await sincronizarRelogio().catch(()=>{});
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session){ location.href = './entrar.html?para=' + encodeURIComponent('./pessoal.html'); return; }
+  const { data: eu } = await sb.schema('ponto').from('empregados').select('nome').maybeSingle();
+  if (eu) $('pessoa').textContent = eu.nome;
+  await carregarHoje();
+  await conferirAparelho();
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
