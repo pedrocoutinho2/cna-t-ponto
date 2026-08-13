@@ -7,7 +7,7 @@ atualizado: 2026-08-10
 # Padrão visual compartilhado
 
 Este arquivo existe para que CRM, Financeiro e Ponto não divirjam com o
-tempo. A referência é o CRM (`pedrocoutinho2/crmcnataquara`), porque foi
+tempo. A referência é o CRM (`pedrocoutinho2/cnataquara-crm`), porque foi
 onde o padrão nasceu.
 
 ## Tokens
@@ -51,7 +51,7 @@ comparar, então divergência que ele aponta é divergência de verdade.
 Rode depois de mexer em botão, aba ou cabeçalho:
 
 ```bash
-curl -s https://raw.githubusercontent.com/pedrocoutinho2/crmcnataquara/main/index.html -o /tmp/crm.html
+curl -s https://raw.githubusercontent.com/pedrocoutinho2/cnataquara-crm/main/index.html -o /tmp/crm.html
 npm install jsdom && node cmp.mjs
 ```
 
