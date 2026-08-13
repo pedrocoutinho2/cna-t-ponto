@@ -1,7 +1,7 @@
 // Cache só do casco e dos pesos do face-api. A marcação NUNCA é
 // enfileirada offline: o horário válido é o do servidor, e um registro
 // gravado com atraso de horas é pior que registro nenhum.
-const CACHE = 'ponto-cna-v3';
+const CACHE = 'ponto-cna-v4';
 const MODELOS = ['tiny_face_detector', 'face_landmark_68', 'face_recognition', 'face_expression'];
 const CASCO = [
   './index.html', './manifest.webmanifest',
