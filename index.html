@@ -231,11 +231,22 @@ const LIMIAR = {
 let stream = null, modelosProntos = false, abortar = false;
 
 /* ---------- relógio: sempre corrigido pelo servidor ---------- */
+/* A hora vem do banco, nao do cabecalho Date da resposta. Em requisicao
+   cross-origin o navegador so entrega os cabecalhos da lista segura do CORS
+   (Cache-Control, Content-Language, Content-Length, Content-Type, Expires,
+   Last-Modified e Pragma) e Date nao esta nela. O PostgREST tampouco manda
+   Access-Control-Expose-Headers, entao headers.get('date') voltava null,
+   new Date(null) virava o epoch e o relogio marcava 21:00 de 31/12/1969
+   subindo do zero, que e o horario de Brasilia do epoch. */
 let desvioMs = 0;
 async function sincronizarRelogio(){
   const t0 = Date.now();
-  const r = await fetch(`${CFG.supabaseUrl}/rest/v1/`, { method:'HEAD' });
-  const servidor = new Date(r.headers.get('date')).getTime();
+  const { data, error } = await sb.schema('ponto').rpc('agora');
+  if (error) throw error;
+  const servidor = new Date(data).getTime();
+  // Descarta resposta implausivel em vez de propagar lixo para a tela: sem
+  // sincronia o relogio do aparelho ainda e uma hora sensata, o epoch nao.
+  if (!Number.isFinite(servidor) || servidor < Date.UTC(2020,0,1)) return;
   desvioMs = servidor + (Date.now() - t0)/2 - Date.now();
 }
 function agora(){ return new Date(Date.now() + desvioMs); }
@@ -250,6 +261,7 @@ function pintarRelogio(){
     f({weekday:'long',day:'2-digit',month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase());
 }
 setInterval(pintarRelogio, 1000); pintarRelogio();
+setInterval(() => sincronizarRelogio().catch(()=>{}), 300000);
 
 /* ---------- geometria do rosto ---------- */
 /* O video aparece espelhado na tela, mas o quadro que o detector recebe nao e.
