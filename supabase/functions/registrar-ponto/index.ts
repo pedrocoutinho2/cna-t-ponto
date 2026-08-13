@@ -15,7 +15,13 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { verifyAuthenticationResponse } from "npm:@simplewebauthn/server@13";
 
-const LIMIAR_FACE = 0.62;      // similaridade de cosseno mínima
+// Similaridade de cosseno mínima. Estava em 0,62, que aceitava rosto de
+// outra pessoa: num teste de substituição o impostor pontuou 0,873 e passou.
+// Com os descritores do face-api normalizados, a mesma pessoa fica em 0,95+
+// (as marcações do titular deram de 0,9569 a 0,9767) e um terceiro fica
+// abaixo de 0,90. 0,92 separa os dois com folga dos dois lados. Ser rigoroso
+// aqui é barato: reprovar não bloqueia a marcação, só manda para revisão.
+const LIMIAR_FACE = 0.92;
 const LIMIAR_LIVENESS = 0.70;  // confiança mínima do traço de vivacidade
 
 // Valor de reserva proposital: sem ele, um segredo faltando produz o
@@ -229,8 +235,14 @@ Deno.serve(async (req) => {
   const sinais = [dentro_cerca || ip_autorizado, face_ok, liveness_ok, webauthn_ok]
     .filter(Boolean).length;
 
+  // Sinais essenciais: quem é (rosto), se é gente ao vivo (liveness) e onde
+  // está (cerca ou rede da unidade). A passkey conta como sinal extra, mas
+  // exigir os quatro tornava a barra inalcançável e TODA marcação caía em
+  // pendente, o que é o mesmo que não ter revisão nenhuma.
+  const essenciais = face_ok && liveness_ok && (dentro_cerca || ip_autorizado);
+
   let evidencia: string | null = null;
-  if (corpo.evidencia_b64 && (!liveness_ok || !face_ok || sinais < 4)) {
+  if (corpo.evidencia_b64 && !essenciais) {
     // só guarda imagem quando algum sinal falhou — minimização (LGPD art. 6º, III)
     const caminho = `${emp.rep_id}/${registro.nsr}.jpg`;
     try {
@@ -262,7 +274,7 @@ Deno.serve(async (req) => {
     liveness_ok,
     liveness_evidencia: evidencia,
     sinais_ok: sinais,
-    revisao: sinais >= 4 ? "nao_requer" : "pendente",
+    revisao: essenciais ? "nao_requer" : "pendente",
     user_agent: req.headers.get("user-agent"),
   });
 
@@ -275,7 +287,7 @@ Deno.serve(async (req) => {
       nome: emp.nome,
       cpf: emp.cpf,
       sinais_ok: sinais,
-      em_revisao: sinais < 4,
+      em_revisao: !essenciais,
       comprovante_url: `${Deno.env.get("SUPABASE_URL")}/functions/v1/comprovante?nsr=${registro.nsr}`,
     },
     { headers: cors },
