@@ -40,6 +40,20 @@ dialog::backdrop{background:rgba(26,26,26,.45)}
 dialog h2{font-size:19px; font-weight:600; padding:22px 24px 0}
 dialog .corpo{padding:18px 24px}
 dialog .rodape{padding:16px 24px 22px; display:flex; gap:10px; justify-content:flex-end}
+
+/* Quem rola e o corpo, nao o dialogo inteiro nem a pagina atras dele. O
+   cna.css so resolvia isso dentro de @media (max-width:860px): no desktop o
+   dialogo crescia alem da janela, o topo saia da tela e a rolagem escapava
+   para o fundo. Sem [open] o display:flex venceria o display:none do
+   navegador e todo dialogo fechado apareceria na tela. */
+dialog[open]{display:flex; flex-direction:column}
+dialog > h2, dialog > .rodape{flex:none}
+dialog .corpo{overflow-y:auto; overscroll-behavior:contain; flex:1 1 auto; min-height:0}
+body.dialogo-aberto{overflow:hidden}
+@media (min-width:861px){
+  dialog{margin:auto; max-height:min(86dvh, 760px)}
+  dialog .rodape{position:sticky; bottom:0; background:var(--branco); border-top:1px solid var(--linha)}
+}
 dialog .nota{margin-top:14px}
 dialog p.erro{color:var(--vermelho-escuro); font-size:13.5px; margin-top:12px; min-height:1.2em}
 
@@ -292,9 +306,12 @@ dialog p.erro{color:var(--vermelho-escuro); font-size:13.5px; margin-top:12px; m
     </div>
     <p class="nota">O e-mail é o que liga a pessoa ao login. As escalas A e B se alternam:
     distribua a equipe entre as duas para ter sempre gente no sábado.</p>
+    <p class="nota" id="f-aviso-bio">Ao salvar, a captura da biometria abre em seguida. Deixe a
+    pessoa por perto: o termo e as três amostras do rosto são colhidos na hora.</p>
     <p class="erro" id="dlg-pessoa-erro"></p>
   </div>
   <div class="rodape">
+    <button class="leve" id="dlg-pessoa-bio" hidden>Biometria</button>
     <button class="leve" data-fecha="dlg-pessoa">Cancelar</button>
     <button class="acao" id="dlg-pessoa-salvar">Salvar</button>
   </div>
@@ -469,6 +486,18 @@ const POSES = [
 ];
 let TERMO = null, faceapi = null, modelosProntos = false;
 const BIO = { emp:null, nome:'', descritores:[], stream:null };
+
+/* Trava a rolagem do fundo enquanto qualquer dialogo estiver aberto.
+   Interceptar showModal cobre os seis dialogos de uma vez, sem depender de
+   lembrar da trava em cada ponto de abertura. */
+const _showModal = HTMLDialogElement.prototype.showModal;
+HTMLDialogElement.prototype.showModal = function(){
+  _showModal.call(this);
+  document.body.classList.add('dialogo-aberto');
+};
+document.addEventListener('close', () => {
+  if (!document.querySelector('dialog[open]')) document.body.classList.remove('dialogo-aberto');
+}, true);
 
 /* ===================== base ===================== */
 const DOW = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -765,10 +794,25 @@ function abrirPessoa(p){
   $('f-jornada').innerHTML = JORNADAS.map(j => `<option value="${j.id}">${esc(j.nome)}</option>`).join('');
   if (p) P.from('empregado_jornada').select('jornada_id').eq('empregado_id', p.id)
     .maybeSingle().then(({ data }) => { if (data) $('f-jornada').value = data.jornada_id; });
+  $('dlg-pessoa-bio').hidden = !p;
+  $('f-aviso-bio').hidden = !!p;
   $('dlg-pessoa').showModal();
   $('f-nome').focus();
 }
 $('btn-novo').onclick = () => abrirPessoa(null);
+
+let bioPendente = null;
+$('dlg-pessoa').addEventListener('close', () => {
+  if (!bioPendente) return;
+  const { id, nome } = bioPendente;
+  bioPendente = null;
+  setTimeout(() => abrirBio(id, nome), 60);
+});
+$('dlg-pessoa-bio').onclick = () => {
+  if (!editando) return;
+  bioPendente = { id: editando.id, nome: editando.nome };
+  $('dlg-pessoa').close();
+};
 $('f-cpf').oninput = (e) => {
   const d = e.target.value.replace(/\D/g,'').slice(0,11);
   e.target.value = d.length > 9 ? fmtCpf(d) : d;
@@ -832,11 +876,13 @@ $('dlg-pessoa-salvar').onclick = async () => {
       recado(`${dados.nome} cadastrado. Crie a conta no Authentication com o mesmo e-mail.`, 'ok');
       novoId = novo.id;
     }
-    $('dlg-pessoa').close();
-    await carregarEquipe();
     // A pessoa esta na frente do balcao agora. Emendar a captura aqui e o que
     // evita o cadastro pela metade que so aparece no dia da primeira marcacao.
-    if (novoId) abrirBio(novoId, dados.nome);
+    // A abertura espera o dialogo anterior fechar de fato: encadear os dois
+    // showModal no mesmo tique deixa o segundo sem foco em alguns navegadores.
+    if (novoId) bioPendente = { id: novoId, nome: dados.nome };
+    $('dlg-pessoa').close();
+    await carregarEquipe();
   } finally {
     btn.disabled = false; btn.textContent = 'Salvar';
   }
