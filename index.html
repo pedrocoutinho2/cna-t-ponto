@@ -540,11 +540,31 @@ $('salvar-token').addEventListener('click', async () => {
 const cabecalhos = () => ({ 'Content-Type':'application/json', 'x-terminal-token': TOKEN });
 
 /* ---------- envio ---------- */
+/* Um terminal revogado deixa o aparelho com uma credencial que nao vale mais.
+   Sem isto o aparelho fica preso: nao bate ponto e nao mostra a tela de vinculo,
+   porque ainda existe algo guardado. Entao a credencial e descartada e o
+   aparelho volta a pedir o codigo. */
+function esquecerAparelho(recado){
+  TOKEN = '';
+  localStorage.removeItem(CFG.chaveToken);
+  mostrarSetup(true);
+  const av = $('setup-aviso');
+  av.hidden = false;
+  av.className = 'aviso erro';
+  av.textContent = recado ?? 'Este aparelho perdeu a autorização. Digite o código de vínculo de novo.';
+}
+
+const credencialRecusada = (r) => r.status === 401 || r.status === 403;
+
 async function enviar(corpo){
   const r = await fetch(`${CFG.supabaseUrl}/functions/v1/terminal-ponto`, {
     method:'POST', headers: cabecalhos(), body: JSON.stringify(corpo),
   });
   const res = await r.json();
+  if (credencialRecusada(r)){
+    esquecerAparelho();
+    throw new Error('Este aparelho não está mais autorizado. Peça o código de vínculo à coordenação.');
+  }
   if (!r.ok) throw new Error(res.erro ?? 'A marcação não foi gravada.');
   return res;
 }
@@ -643,6 +663,10 @@ $('bater').addEventListener('click', async () => {
       method:'POST', headers: cabecalhos(),
     });
     const desafio = await rd.json();
+    if (credencialRecusada(rd)){
+      esquecerAparelho();
+      throw new Error('Este aparelho não está mais autorizado. Digite o código de vínculo abaixo.');
+    }
     if (!rd.ok) throw new Error(desafio.erro ?? 'Não foi possível abrir o desafio.');
     $('terminal-nome').textContent = desafio.terminal;
 
@@ -684,12 +708,12 @@ $('bater').addEventListener('click', async () => {
   // Link com o codigo na URL poupa a digitacao, mas passa pela mesma troca:
   // o que fica no aparelho e sempre o token gerado no servidor.
   const daUrl = new URLSearchParams(location.search).get('terminal');
-  if (daUrl && !TOKEN){
+  if (daUrl){
+    // Revincula mesmo se ja houver credencial guardada: e assim que um aparelho
+    // com token revogado se recupera sem precisar limpar os dados do navegador.
     history.replaceState(null, '', location.pathname);
     try { await vincularAparelho(daUrl); }
     catch { /* cai na tela de setup e a pessoa digita */ }
-  } else if (daUrl){
-    history.replaceState(null, '', location.pathname);
   }
   mostrarSetup(!TOKEN);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
