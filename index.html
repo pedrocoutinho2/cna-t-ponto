@@ -160,11 +160,12 @@ button.bater:focus-visible{outline:2px solid var(--azul); outline-offset:3px}
        aparelho. Nao e senha de pessoa, e credencial do celular. -->
   <section class="setup" id="setup" hidden>
     <h2>Este celular ainda não está autorizado</h2>
-    <p>Cole o código gerado na administração. Ele fica guardado neste aparelho e
-    ninguém precisa digitar nada depois.</p>
-    <label class="campo"><span>Código do terminal</span>
-      <input type="text" id="token" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
+    <p>Digite o código de vínculo da unidade. Ele é usado uma vez só: o aparelho
+    recebe uma credencial própria e o código digitado não fica guardado aqui.</p>
+    <label class="campo"><span>Código de vínculo</span>
+      <input type="text" id="token" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false"></label>
     <button class="bater" id="salvar-token">Autorizar este celular</button>
+    <p class="aviso" id="setup-aviso" hidden style="margin-top:14px"></p>
   </section>
 
   <div class="janela oculta" id="janela">
@@ -500,14 +501,40 @@ function mostrarSetup(mostrar){
   $('terminal-nome').textContent = mostrar ? 'não autorizado' : $('terminal-nome').textContent;
 }
 
-$('salvar-token').addEventListener('click', () => {
-  const t = $('token').value.trim();
-  if (!t) return;
-  TOKEN = t;
-  localStorage.setItem(CFG.chaveToken, t);
-  $('token').value = '';
-  mostrarSetup(false);
-  $('aviso').textContent = 'Celular autorizado. Pode bater ponto.';
+/* O codigo digitado nao vira credencial: ele e trocado no servidor por um token
+   de 32 bytes, proprio deste aparelho. Assim o codigo curto nao fica salvo em
+   lugar nenhum do celular, e o que fica salvo nao autoriza um segundo aparelho. */
+async function vincularAparelho(codigo){
+  const { data, error } = await sb.schema('ponto').rpc('vincular_aparelho', {
+    p_codigo: codigo, p_nome: null,
+  });
+  if (error || !data) throw new Error(error?.message ?? 'Não foi possível vincular este aparelho.');
+  TOKEN = data;
+  localStorage.setItem(CFG.chaveToken, data);
+}
+
+$('salvar-token').addEventListener('click', async () => {
+  const btn = $('salvar-token'), recado = $('setup-aviso');
+  const codigo = $('token').value.trim();
+  if (!codigo) return;
+
+  btn.disabled = true; btn.textContent = 'Vinculando…';
+  recado.hidden = true; recado.className = 'aviso';
+
+  try {
+    await vincularAparelho(codigo);
+    $('token').value = '';
+    mostrarSetup(false);
+    $('aviso').textContent = 'Celular autorizado. Pode bater ponto.';
+  } catch (e) {
+    recado.hidden = false;
+    recado.className = 'aviso erro';
+    recado.textContent = /inv[aá]lido/i.test(e.message)
+      ? 'Código inválido. Confira com a coordenação.'
+      : 'Não consegui vincular agora. Verifique a conexão e tente de novo.';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Autorizar este celular';
+  }
 });
 
 const cabecalhos = () => ({ 'Content-Type':'application/json', 'x-terminal-token': TOKEN });
@@ -654,11 +681,14 @@ $('bater').addEventListener('click', async () => {
 /* ---------- boot ---------- */
 (async () => {
   await sincronizarRelogio().catch(()=>{});
-  // Link com o token na URL autoriza o aparelho de uma vez, sem digitacao.
+  // Link com o codigo na URL poupa a digitacao, mas passa pela mesma troca:
+  // o que fica no aparelho e sempre o token gerado no servidor.
   const daUrl = new URLSearchParams(location.search).get('terminal');
-  if (daUrl){
-    TOKEN = daUrl;
-    localStorage.setItem(CFG.chaveToken, daUrl);
+  if (daUrl && !TOKEN){
+    history.replaceState(null, '', location.pathname);
+    try { await vincularAparelho(daUrl); }
+    catch { /* cai na tela de setup e a pessoa digita */ }
+  } else if (daUrl){
     history.replaceState(null, '', location.pathname);
   }
   mostrarSetup(!TOKEN);
